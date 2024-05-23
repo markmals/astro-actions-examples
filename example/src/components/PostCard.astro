@@ -1,0 +1,137 @@
+---
+import type { User } from "astro:db";
+import type { HydratedPost } from "../lib/fetchAllPosts";
+import { formatters } from "../lib/formatters";
+import CommentFeed from "./CommentFeed.astro";
+import { LikeButton } from "./LikeButton";
+import { type InferSelectModel } from "drizzle-orm";
+
+export interface Props {
+    post: HydratedPost;
+    currentUser: InferSelectModel<typeof User>;
+    currentUserHasLikedPost: boolean;
+}
+
+const { post, currentUser, currentUserHasLikedPost } = Astro.props;
+---
+
+<li>
+    <div class="hstack header">
+        <img class="profile-image" src={post.user.image} />
+        <div class="vstack text-sm" style="--gap: var(--spacing-0)" data-alignment="leading">
+            <span class="user-name">{post.user.name}</span>
+            <span class="user-handle">@{post.user.handle}</span>
+        </div>
+    </div>
+    <div>
+        <img class="post-image" src={post.image} />
+        <div class="post-container">
+            <span class="post-description">{post.description}</span>
+            <hr />
+            <CommentFeed comments={post.comments} currentUser={currentUser} postId={post.id} />
+        </div>
+    </div>
+    <div class="hstack footer">
+        <time datetime={post.createdOn.toISOString()} class="date-posted text-sm">
+            {formatters.frontPage.formatDate(post.createdOn)}
+        </time>
+        <div class="spacer"></div>
+        <span class="hstack">
+            <LikeButton
+                client:load
+                postId={post.id}
+                likeCount={post.likes.count}
+                isLiked={currentUserHasLikedPost}
+            />
+        </span>
+    </div>
+</li>
+
+<style>
+    li {
+        overflow: hidden;
+        border-radius: var(--radius-lg);
+        border-width: var(--spacing-px);
+        border-color: var(--color-gray-300);
+        background-color: var(--color-white);
+        box-shadow: var(--shadow);
+        /* divide-y divide-gray-200 */
+    }
+
+    li > :not([hidden]) ~ :not([hidden]) {
+        --divide-y-reverse: 0;
+        border-top-width: calc(1px * calc(1 - var(--divide-y-reverse)));
+        border-bottom-width: calc(1px * var(--divide-y-reverse));
+        border-color: var(--color-gray-200);
+    }
+
+    .header,
+    .footer {
+        background-color: var(--color-gray-50);
+        padding-left: var(--spacing-4);
+        padding-right: var(--spacing-4);
+    }
+
+    .header {
+        padding-top: var(--spacing-5);
+        padding-bottom: var(--spacing-5);
+        --gap: var(--spacing-6);
+    }
+
+    .footer {
+        padding-top: var(--spacing-4);
+        padding-bottom: var(--spacing-4);
+    }
+
+    @media (min-width: 640px) {
+        .header,
+        .footer {
+            padding-left: var(--spacing-6);
+            padding-right: var(--spacing-6);
+        }
+    }
+
+    img.profile-image {
+        height: var(--spacing-10);
+        border-radius: var(--radius-full);
+        object-fit: cover;
+    }
+
+    span.user-name {
+        font-weight: 700;
+        color: var(--color-gray-800);
+    }
+
+    span.user-handle {
+        color: var(--color-gray-400);
+    }
+
+    img.post-image {
+        width: 100%;
+        object-fit: cover;
+    }
+
+    .post-container {
+        padding: var(--spacing-5) var(--spacing-4);
+    }
+
+    @media (min-width: 640px) {
+        .post-container {
+            padding: var(--spacing-6);
+        }
+    }
+
+    span.post-description {
+        color: var(--color-gray-700);
+    }
+
+    hr {
+        margin-top: var(--spacing-6);
+        margin-bottom: var(--spacing-6);
+        border-color: var(--color-gray-300);
+    }
+
+    time.date-posted {
+        color: var(--color-gray-500);
+    }
+</style>

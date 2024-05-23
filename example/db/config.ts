@@ -1,4 +1,4 @@
-import { defineDb, defineTable, column } from 'astro:db';
+import { defineDb, defineTable, column } from "astro:db";
 
 const User = defineTable({
     columns: {
@@ -13,25 +13,33 @@ const User = defineTable({
 const Post = defineTable({
     columns: {
         id: column.number({ primaryKey: true }),
-        userId: column.number({ references: () => User.columns.id }),
+        userId: column.number({ references: () => User.columns.id, optional: false }),
 
         description: column.text(),
-        likes: column.number(),
         image: column.text(),
+        createdOn: column.date(),
+    },
+});
+
+const Like = defineTable({
+    columns: {
+        id: column.number({ primaryKey: true }),
+        postId: column.number({ references: () => Post.columns.id, optional: false }),
+        userId: column.number({ references: () => User.columns.id, optional: false }),
     },
 });
 
 const Comment = defineTable({
     columns: {
         id: column.number({ primaryKey: true }),
-        postId: column.number({ references: () => Post.columns.id }),
-        userId: column.number({ references: () => User.columns.id }),
+        postId: column.number({ references: () => Post.columns.id, optional: false }),
+        userId: column.number({ references: () => User.columns.id, optional: false }),
 
         content: column.text(),
-        postedOn: column.date(),
+        createdOn: column.date(),
     },
 });
 
 export default defineDb({
-    tables: { User, Post, Comment },
+    tables: { User, Post, Like, Comment },
 });

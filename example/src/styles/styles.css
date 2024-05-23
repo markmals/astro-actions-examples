@@ -1,0 +1,76 @@
+/* @layer reset, defaults, patterns, components, utilities, overrides; */
+@layer theme, base, components, utilities;
+
+@import url("./theme.css") layer(theme);
+@import url("./base.css") layer(base);
+@import url("./components.css") layer(components);
+@import url("./utilities.css") layer(utilities);
+
+body {
+    margin-left: auto;
+    margin-right: auto;
+
+    max-width: 42rem;
+
+    color: var(--color-gray-700);
+    background-color: var(--color-slate-50);
+
+    padding-top: var(--spacing-12);
+    padding-bottom: var(--spacing-12);
+
+    text-align: center;
+}
+
+@media (min-width: 640px) {
+    body {
+        padding-top: var(--spacing-16);
+        padding-bottom: var(--spacing-16);
+    }
+}
+
+@media (min-width: 1024px) {
+    body {
+        padding-top: var(--spacing-20);
+        padding-bottom: var(--spacing-20);
+    }
+}
+
+h1 {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-4);
+    padding-bottom: var(--spacing-12);
+    font-size: var(--font-size-4xl);
+    line-height: var(--font-size-4xl--line-height);
+    font-weight: 700;
+    letter-spacing: var(--letter-spacing-tight);
+    color: var(--color-gray-900);
+}
+
+@media (min-width: 640px) {
+    h1 {
+        font-size: var(--font-size-6xl);
+        line-height: var(--font-size-6xl--line-height);
+    }
+}
+
+img.logo {
+    height: var(--spacing-12);
+}
+
+ul.feed {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-6);
+    padding-bottom: var(--spacing-12);
+    text-align: left;
+}
+
+button {
+    cursor: pointer;
+}
+
+button:disabled {
+    cursor: default;
+}

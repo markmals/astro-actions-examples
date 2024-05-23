@@ -1,17 +1,11 @@
-import {
-    batch,
-    children,
-    createSignal,
-    splitProps,
-    type ComponentProps,
-    type ParentComponent,
-    type ParentProps,
-} from 'solid-js';
-import { getActionProps, type ErrorInferenceObject, type SafeResult } from 'astro:actions';
+import { batch, children, createSignal, splitProps, untrack } from "solid-js";
+import type { ComponentProps, ParentComponent, ParentProps } from "solid-js";
+import { ActionError, getActionProps } from "astro:actions";
+import type { ErrorInferenceObject, SafeResult } from "astro:actions";
 
-export type FormMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
+export type FormMethod = "get" | "post" | "put" | "patch" | "delete";
 
-export interface FormProps extends Omit<ComponentProps<'form'>, 'method' | 'onSubmit'> {
+export interface FormProps extends Omit<ComponentProps<"form">, "method" | "onSubmit"> {
     /**
      * The HTTP verb to use when the form is submit. Supports "get", "post",
      * "put", "delete", "patch".
@@ -48,106 +42,111 @@ export interface FormProps extends Omit<ComponentProps<'form'>, 'method' | 'onSu
     onSubmit?: (event: SubmitEvent) => void;
 }
 
-export type Action<Input, Output> = {
-    pending: boolean;
-    input?: Input;
-    result?: Output;
-    error?: any;
-    // clear: () => void;
-    // retry: () => void;
-};
-
-export type Mutator<Input> = ((input: Input) => Promise<void>) & {
-    Form: Input extends FormData ? ParentComponent<FormProps> : never;
-};
-
-export type Input<A extends AstroAction<any, {}, ErrorInferenceObject>> =
+export type Input<A extends AstroAction> =
     A extends AstroAction<infer Input, infer Output, infer Data> ? Input : never;
 
-export type Output<A extends AstroAction<any, {}, ErrorInferenceObject>> =
+export type Output<A extends AstroAction> =
     A extends AstroAction<infer Input, infer Output, infer Data> ? Output : never;
 
-export type Data<A extends AstroAction<any, {}, ErrorInferenceObject>> =
+export type Data<A extends AstroAction> =
     A extends AstroAction<infer Input, infer Output, infer Data> ? Data : never;
 
-export type ActionReturn<Input, Output> = [Action<Input, Output>, Mutator<Input>];
+export type Submitter<Input> = ((input: Input) => Promise<void>) &
+    (Input extends FormData ? { Form: ParentComponent<FormProps> } : {});
 
-export type AstroAction<Input, Output, Data extends ErrorInferenceObject> = {
+export type Action<Input, Output, Data extends ErrorInferenceObject> = [
+    {
+        pending: boolean;
+        input?: Input;
+        result?: Output;
+        error?: ActionError<Data>;
+        clear(): void;
+        retry(): void;
+    },
+    Submitter<Input>,
+];
+
+export type AstroAction<
+    Input = any,
+    Output = {} | undefined,
+    Data extends ErrorInferenceObject = ErrorInferenceObject,
+> = {
     safe: (input: Input) => Promise<SafeResult<Data, Output>>;
 };
 
-export function useAction<
-    // Input extends {} | FormData,
-    // Output extends {},
-    // Data extends ErrorInferenceObject,
-    A extends AstroAction<any, {}, ErrorInferenceObject>,
->(astroAction: A): ActionReturn<Input<A>, Output<A>> {
-    const [pending, setPending] = createSignal<boolean>(false);
+export function useAction<A extends AstroAction>(
+    astroAction: A,
+): Action<Input<A>, Output<A>, Data<A>> {
     const [input, setInput] = createSignal<Input<A>>();
-    const [result, setResult] = createSignal<Output<A>>();
-    const [error, setError] = createSignal<any>();
+    const [response, setResponse] = createSignal<{ data?: Output<A>; error?: any }>();
 
-    const mutator = ((input: Input<A>) =>
-        batch(async () => {
-            setInput(input as any);
+    async function submit(input: Input<A>): Promise<void> {
+        batch(() => {
+            setResponse(undefined);
+            setInput(() => input);
+        });
 
-            setPending(true);
-            const res = await astroAction.safe(input);
+        const res = await astroAction.safe(input);
 
-            if (res.data) {
-                setResult(res.data as any);
-            }
+        setResponse({
+            data: res.data as any,
+            error: res.error,
+        });
+    }
 
-            if (res.error) {
-                setError(res.error);
-            }
-
-            setPending(false);
-            setInput(undefined);
-        })) as Mutator<Input<A>>;
-
-    function Form(props: ParentProps & FormProps) {
-        const [_, formProps] = splitProps(props, ['children']);
-        const c = children(() => props.children);
+    submit.Form = (props: ParentProps & FormProps) => {
+        const [locals, formProps] = splitProps(props, ["children", "onSubmit"]);
+        const c = children(() => locals.children);
 
         return (
             <form
                 {...formProps}
                 method="post"
-                onSubmit={async e => {
-                    e.preventDefault();
-                    // TODO: Throw fatal error if trying to submit FormData to a JSON handler
-                    (mutator as any)(new FormData(e.currentTarget));
+                onSubmit={async event => {
+                    event.preventDefault();
+                    // TODO: Throw fatal error if trying to submit FormData to a JSON handler?
+                    (submit as Submitter<FormData>)(new FormData(event.currentTarget));
+                    // TODO: async onSubmit
+                    if (locals.onSubmit) locals.onSubmit(event);
                 }}
             >
                 <input {...getActionProps(astroAction as any)} />
                 {c()}
             </form>
         );
-    }
-
-    Object.assign(mutator, { Form });
-
-    const observable = {
-        get pending(): boolean {
-            return pending();
-        },
-
-        get input(): Input<A> | undefined {
-            return input();
-        },
-
-        get result(): Output<A> | undefined {
-            return result();
-        },
-
-        get error(): any | undefined {
-            return error();
-        },
-
-        // clear: () => void {},
-        // retry: () => void {},
     };
 
-    return [observable, mutator];
+    return [
+        {
+            get pending(): boolean {
+                return !!input() && !response();
+            },
+
+            get input(): Input<A> | undefined {
+                return input();
+            },
+
+            get result(): Output<A> | undefined {
+                return response()?.data;
+            },
+
+            get error(): ActionError<Data<A>> | undefined {
+                return response()?.error;
+            },
+
+            clear() {
+                batch(() => {
+                    setInput(undefined);
+                    setResponse(undefined);
+                });
+            },
+
+            retry() {
+                const cachedInput = untrack(input);
+                if (!cachedInput) throw new Error("No submission to retry");
+                submit(cachedInput);
+            },
+        },
+        submit,
+    ];
 }
