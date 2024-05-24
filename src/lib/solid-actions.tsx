@@ -77,8 +77,10 @@ export type AstroAction<
 export function useAction<A extends AstroAction>(
     astroAction: A,
 ): Action<Input<A>, Output<A>, Data<A>> {
+    type Res = { data?: Output<A>; error?: ActionError<Data<A>> };
+
     const [input, setInput] = createSignal<Input<A>>();
-    const [response, setResponse] = createSignal<{ data?: Output<A>; error?: any }>();
+    const [response, setResponse] = createSignal<Res>();
 
     async function submit(input: Input<A>): Promise<void> {
         batch(() => {
@@ -89,7 +91,7 @@ export function useAction<A extends AstroAction>(
         const res = await astroAction.safe(input);
 
         setResponse({
-            data: res.data as any,
+            data: res.data as Output<A>,
             error: res.error,
         });
     }
