@@ -31,7 +31,7 @@ const Like = defineTable({
 
 const Comment = defineTable({
     columns: {
-        id: column.number({ primaryKey: true }),
+        id: column.text({ primaryKey: true }),
         postId: column.number({ references: () => Post.columns.id, optional: false }),
         userId: column.number({ references: () => User.columns.id, optional: false }),
 

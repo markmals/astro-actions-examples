@@ -48,6 +48,7 @@ export default async function seed() {
 
     await db.insert(Comment).values(
         [...Array(faker.number.int({ max: COMMENT_MAX })).keys()].map(_ => ({
+            id: crypto.randomUUID(),
             userId: faker.number.int({ max: USER_COUNT, min: 1 }),
             postId: faker.number.int({ max: POST_COUNT, min: 1 }),
             content: faker.lorem.lines(faker.number.int({ max: 4, min: 1 })),

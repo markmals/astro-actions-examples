@@ -1,6 +1,7 @@
 import { formatters } from "../lib/formatters";
 
 export type Comment = {
+    id: string;
     content: string;
     createdOn: Date | string;
     user: {

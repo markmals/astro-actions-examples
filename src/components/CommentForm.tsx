@@ -1,6 +1,14 @@
 import { actions } from "astro:actions";
 import { useAction } from "../lib/solid-actions";
-import { For, Show, createEffect, createMemo, createSignal, type ParentProps } from "solid-js";
+import {
+    For,
+    Show,
+    createEffect,
+    createMemo,
+    createSignal,
+    untrack,
+    type ParentProps,
+} from "solid-js";
 import type { HydratedPost } from "../lib/fetchAllPosts";
 import { CommentPreview, type Comment } from "./CommentPreview";
 import { createStore, produce } from "solid-js/store";
@@ -11,10 +19,25 @@ export interface CommentFormProps extends ParentProps {
     postId: number;
 }
 
+function createUUIDStore() {
+    const [id, setId] = createSignal(crypto.randomUUID());
+
+    return {
+        get id() {
+            return id();
+        },
+        regenerate() {
+            setId(crypto.randomUUID());
+        },
+    };
+}
+
 export function CommentForm(props: CommentFormProps) {
     const [comment, { Form }] = useAction(actions.comment);
     const [cachedComments, setCachedComments] = createStore<Record<string, Comment>>({});
     const [content, setContent] = createSignal("");
+
+    const tempCommentIdStore = createUUIDStore();
 
     const newComment = createMemo<Comment | undefined>(() => {
         if (comment.result) {
@@ -22,8 +45,9 @@ export function CommentForm(props: CommentFormProps) {
                 ...comment.result.Comment,
                 user: comment.result.User,
             };
-        } else if (comment.input) {
+        } else if (comment.input && !comment.error) {
             return {
+                id: tempCommentIdStore.id,
                 content: comment.input.get("comment") as string,
                 createdOn: new Date(),
                 user: {
@@ -38,28 +62,32 @@ export function CommentForm(props: CommentFormProps) {
 
     createEffect(() => {
         const c = newComment();
+
         if (c) {
             setCachedComments(
                 produce(cache => {
-                    // TODO: figure out how to de-dupe these better for optimistic UI
-                    // on the client, since the actual keys are generated on the server
-                    cache[c.content] = c;
+                    cache[c.id] = c;
                 }),
             );
         }
     });
 
     createEffect(() => {
-        if (comment.error && comment.input) {
-            const commentContent = comment.input.get("comment") as string;
+        if (!comment.pending) {
+            if (comment.error && comment.input) {
+                const commentContent = comment.input.get("comment") as string;
 
-            setCachedComments(
-                produce(cache => {
-                    delete cache[commentContent];
-                }),
-            );
+                setCachedComments(
+                    produce(cache => {
+                        delete cache[untrack(() => tempCommentIdStore.id)];
+                    }),
+                );
 
-            setContent(commentContent);
+                setContent(commentContent);
+                tempCommentIdStore.regenerate();
+            } else if (comment.result) {
+                tempCommentIdStore.regenerate();
+            }
         }
     });
 
@@ -77,6 +105,13 @@ export function CommentForm(props: CommentFormProps) {
                 <img src={props.currentUser.image} />
                 <Form onSubmit={() => setContent("")}>
                     <input type="hidden" id="postId" name="postId" value={props.postId} />
+                    <input
+                        type="hidden"
+                        id="commentId"
+                        name="commentId"
+                        value={tempCommentIdStore.id}
+                    />
+
                     <div class="text-area-container">
                         <label for="comment" class="sr-only">
                             Add your comment
@@ -100,10 +135,7 @@ export function CommentForm(props: CommentFormProps) {
             </div>
 
             <Show when={comment.error}>
-                <Alert>
-                    {/* TODO: Figure out how to intercept the actual error message */}
-                    {comment.error!.message}
-                </Alert>
+                <Alert>{comment.error!.message}</Alert>
             </Show>
         </>
     );

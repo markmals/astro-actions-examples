@@ -5,7 +5,7 @@
     "scripts": {
         "dev": "astro dev",
         "format": "prettier . -w",
-        "start": "astro dev",
+        "sync": "astro sync",
         "build": "astro check && astro build",
         "preview": "astro preview",
         "astro": "astro"

@@ -6,11 +6,12 @@ import type { ActionAPIContext } from "astro/actions/runtime/store.js";
 
 export const commentSchema = z.object({
     postId: z.number(),
+    commentId: z.string(),
     comment: z.string(),
 });
 
 export async function commentOnPost(
-    { postId, comment: content }: z.infer<typeof commentSchema>,
+    { postId, commentId, comment: content }: z.infer<typeof commentSchema>,
     context: ActionAPIContext,
 ) {
     // Simulate server slowness
@@ -28,16 +29,14 @@ export async function commentOnPost(
     // TODO: Log-in, log-out, & users
     const currentUser = await fetchCurrentUser(context);
 
-    const comment = await db
+    await db
         .insert(Comment)
-        .values({ postId, createdOn: new Date(), userId: currentUser.id, content })
-        .returning()
-        .get();
+        .values({ id: commentId, postId, createdOn: new Date(), userId: currentUser.id, content });
 
     const hydratedComment = await db
         .select()
         .from(Comment)
-        .where(eq(Comment.id, comment.id))
+        .where(eq(Comment.id, commentId))
         .innerJoin(User, eq(Comment.userId, User.id))
         .get();
 
