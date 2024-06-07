@@ -12,8 +12,8 @@ export const server = {
     comment: defineAction({
         accept: "form",
         input: commentSchema,
-        async handler(input) {
-            return await commentOnPost(input);
+        async handler(input, ctx) {
+            return await commentOnPost(input, ctx);
         },
     }),
 };

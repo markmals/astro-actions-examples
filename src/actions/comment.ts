@@ -1,28 +1,32 @@
 import { db, Comment, eq, User } from "astro:db";
-import { getApiContext, z } from "astro:actions";
+import { ActionError, z } from "astro:actions";
 import { fetchCurrentUser } from "../lib/fetchCurrentUser";
 import { sleep } from "../lib/sleep";
-import { AstroError } from "astro/errors";
+import type { ActionAPIContext } from "astro/actions/runtime/store.js";
 
 export const commentSchema = z.object({
     postId: z.number(),
     comment: z.string(),
 });
 
-export async function commentOnPost({ postId, comment: content }: z.infer<typeof commentSchema>) {
+export async function commentOnPost(
+    { postId, comment: content }: z.infer<typeof commentSchema>,
+    context: ActionAPIContext,
+) {
     // Simulate server slowness
     await sleep(1000);
 
     // Simulate random faiulre
     if (content.includes("a")) {
         console.error("[RANDOM COMMENT FAILURE]:", content, "includes the character 'a'");
-        throw new AstroError(
-            `${content} contains an 'a'. Try typing a comment without the character 'a'.`,
-        );
+        throw new ActionError({
+            code: "FORBIDDEN",
+            message: `${content} contains an 'a'. Try typing a comment without the character 'a'.`,
+        });
     }
 
     // TODO: Log-in, log-out, & users
-    const currentUser = await fetchCurrentUser(getApiContext());
+    const currentUser = await fetchCurrentUser(context);
 
     const comment = await db
         .insert(Comment)
