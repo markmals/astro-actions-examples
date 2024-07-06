@@ -1,4 +1,4 @@
-import { formatters } from "../lib/formatters";
+import { Formatters } from "../lib/formatters";
 
 export type Comment = {
     id: string;
@@ -28,11 +28,10 @@ export function CommentPreview(props: CommentPreviewProps) {
                     <div class="comment-user-name">
                         <span>{props.comment.user.name}</span> commented
                     </div>
-                    <time datetime={new Date(props.comment.createdOn).toISOString()}>
-                        {formatters.comment.formatDate(new Date(props.comment.createdOn))}
+                    <time datetime={Formatters.comment.formatAsISO(props.comment.createdOn)}>
+                        {Formatters.comment.formatForDisplay(props.comment.createdOn)}
                     </time>
                 </div>
-
                 <p>{props.comment.content}</p>
             </div>
         </li>

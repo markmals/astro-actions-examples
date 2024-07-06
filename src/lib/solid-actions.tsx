@@ -85,6 +85,8 @@ export function useAction<A extends AstroAction>(
     async function submit(input: Input<A>): Promise<void> {
         batch(() => {
             setResponse(undefined);
+            // TODO: Validate this on the client and return validated
+            // JSON if `input` is FormData
             setInput(() => input);
         });
 
