@@ -36,13 +36,11 @@ const { post, currentUser, currentUserHasLikedPost } = Astro.props;
             {Formatters.frontPage.format(post.createdOn)}
         </time>
         <div class="spacer"></div>
-        <span class="hstack">
-            <LikeButton
-                postId={post.id}
-                likeCount={post.likes.count}
-                isLiked={currentUserHasLikedPost}
-            />
-        </span>
+        <LikeButton
+            postId={post.id}
+            likeCount={post.likes.count}
+            isLiked={currentUserHasLikedPost}
+        />
     </div>
 </li>
 
