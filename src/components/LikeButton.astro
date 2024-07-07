@@ -19,8 +19,8 @@ const { postId, likeCount, isLiked } = Astro.props;
             signal: this.disconnect.signal,
         });
 
-        private readonly countLabel = this.querySelector("span")!;
-        private readonly button = this.querySelector("button")!;
+        private readonly countLabel = this.$("span")!;
+        private readonly button = this.$("button")!;
 
         public connectedCallback() {
             this.renderEffect(() => {

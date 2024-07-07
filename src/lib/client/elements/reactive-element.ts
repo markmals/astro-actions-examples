@@ -47,4 +47,25 @@ export abstract class ReactiveElement extends HTMLElement {
     static register(tagName = this.tagName) {
         customElements.define(tagName, this as any);
     }
+
+    protected $<K extends keyof HTMLElementTagNameMap>(
+        selectors: K,
+    ): HTMLElementTagNameMap[K] | null;
+    protected $<E extends Element = Element>(selectors: string): E | null;
+    protected $<E extends Element = Element>(selectors: string): E | null {
+        return new Proxy(this.querySelector(selectors)!, {
+            get(element, property: string) {
+                if (!(property in element)) {
+                    return element.getAttribute(property);
+                }
+                return Reflect.get(element, property);
+            },
+            set(element, property: string, value) {
+                if (typeof value !== "object" && typeof value !== "function") {
+                    element.setAttribute(property, String(value));
+                }
+                return Reflect.set(element, property, value);
+            },
+        }) as E;
+    }
 }

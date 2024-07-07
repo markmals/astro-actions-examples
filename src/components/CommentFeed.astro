@@ -28,11 +28,11 @@ comments = comments.sort((lhs, rhs) => lhs.createdOn.getTime() - rhs.createdOn.g
         });
 
         private readonly elements = {
-            form: this.querySelector("form")!,
-            commentIdInput: this.querySelector<HTMLInputElement>("input#commentId")!,
-            textArea: this.querySelector("textarea")!,
-            button: this.querySelector<HTMLButtonElement>(".button-container > button")!,
-            commentsList: this.querySelector("ul")!,
+            form: this.$("form")!,
+            commentIdInput: this.$<HTMLInputElement>("input#commentId")!,
+            textArea: this.$("textarea")!,
+            button: this.$<HTMLButtonElement>(".button-container > button")!,
+            commentsList: this.$("ul")!,
         };
 
         private readonly commentListItemParts = mapArray(
