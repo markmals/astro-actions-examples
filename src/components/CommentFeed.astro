@@ -8,7 +8,8 @@ export interface Props {
     comments: HydratedPost["comments"];
 }
 
-let { postId, currentUser, comments } = Astro.props;
+const { postId, currentUser } = Astro.props;
+let { comments } = Astro.props;
 comments = comments.sort((lhs, rhs) => lhs.createdOn.getTime() - rhs.createdOn.getTime());
 ---
 
@@ -20,9 +21,13 @@ comments = comments.sort((lhs, rhs) => lhs.createdOn.getTime() - rhs.createdOn.g
     import { ErrorAlertPart } from "~/lib/client/elements/error-alert";
 
     class CommentFeedElement extends ReactiveElement {
-        #model = new CommentFeedModel(this.dataset, { signal: this.disconnect.signal });
+        protected static override readonly tagName = "ui-comment-feed";
 
-        #elements = {
+        private readonly model = new CommentFeedModel(this.dataset, {
+            signal: this.disconnect.signal,
+        });
+
+        private readonly elements = {
             form: this.querySelector("form")!,
             commentIdInput: this.querySelector<HTMLInputElement>("input#commentId")!,
             textArea: this.querySelector("textarea")!,
@@ -30,31 +35,31 @@ comments = comments.sort((lhs, rhs) => lhs.createdOn.getTime() - rhs.createdOn.g
             commentsList: this.querySelector("ul")!,
         };
 
-        #commentListItemParts = mapArray(
-            () => this.#model.comments,
+        private readonly commentListItemParts = mapArray(
+            () => this.model.comments,
             comment => new CommentListItemPart(comment),
         );
 
-        #hydrateRendering() {
+        private hydrateRendering() {
             // Update the general form elements when the model values change
             this.renderEffect(() => {
-                this.#elements.commentIdInput.value = this.#model.tempCommentIdStore.id;
-                this.#elements.textArea.value = this.#model.content;
-                this.#elements.button.disabled = this.#model.comment.pending;
-                this.#elements.textArea.disabled = this.#model.comment.pending;
+                this.elements.commentIdInput.value = this.model.tempCommentIdStore.id;
+                this.elements.textArea.value = this.model.content;
+                this.elements.button.disabled = this.model.comment.pending;
+                this.elements.textArea.disabled = this.model.comment.pending;
             });
 
             // Update the comments list when the comments update
             this.renderEffect(() => {
-                let parts = this.#commentListItemParts.get();
+                const parts = this.commentListItemParts.get();
 
                 if (parts.length) {
                     // TODO: Diff the DOM less naïvely...
-                    let commentIds = Array.from(this.#elements.commentsList.children).map(
+                    const commentIds = Array.from(this.elements.commentsList.children).map(
                         element => element.getAttribute("id")!,
                     );
 
-                    this.#elements.commentsList.append(
+                    this.elements.commentsList.append(
                         ...parts
                             .map(part => part.content)
                             .filter(element => !commentIds.includes(element.getAttribute("id")!)),
@@ -62,11 +67,11 @@ comments = comments.sort((lhs, rhs) => lhs.createdOn.getTime() - rhs.createdOn.g
                 }
             });
 
-            let errorAlert = new ErrorAlertPart();
+            const errorAlert = new ErrorAlertPart();
             this.renderEffect(() => {
-                if (this.#model.comment.error) {
+                if (this.model.comment.error) {
                     // Show error alert if there is an error
-                    errorAlert.message = this.#model.comment.error.message;
+                    errorAlert.message = this.model.comment.error.message;
                     this.appendChild(errorAlert.content);
                 } else {
                     // Hide error alert if error is cleared
@@ -76,18 +81,18 @@ comments = comments.sort((lhs, rhs) => lhs.createdOn.getTime() - rhs.createdOn.g
             });
         }
 
-        #hydrateListeners() {
-            this.hydrateListener(this.#elements.form, "submit", this.#model.handleFormSubmission);
-            this.hydrateListener(this.#elements.textArea, "input", this.#model.handleCommentInput);
+        private hydrateListeners() {
+            this.hydrateListener(this.elements.form, "submit", this.model.handleFormSubmission);
+            this.hydrateListener(this.elements.textArea, "input", this.model.handleCommentInput);
         }
 
-        connectedCallback() {
-            this.#hydrateRendering();
-            this.#hydrateListeners();
+        public connectedCallback() {
+            this.hydrateRendering();
+            this.hydrateListeners();
         }
     }
 
-    customElements.define("ui-comment-feed", CommentFeedElement);
+    CommentFeedElement.register();
 </script>
 
 <ui-comment-feed data-user-name={currentUser.name} data-user-image={currentUser.image}>

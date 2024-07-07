@@ -6,11 +6,11 @@ export class CommentFeedModel {
     public comment = new Action(actions.comment);
     public tempCommentIdStore = new UUIDStore();
 
-    #cachedComments = new State<Record<string, Comment>>({});
-    #comments = new Computed(() =>
-        Array.from(Object.entries(this.#cachedComments.get())).map(([_, comment]) => comment),
-    );
+    private cachedComments = new State<Record<string, Comment>>({});
 
+    #comments = new Computed(() =>
+        Array.from(Object.entries(this.cachedComments.get())).map(([_, comment]) => comment),
+    );
     public get comments() {
         return this.#comments.get();
     }
@@ -20,7 +20,7 @@ export class CommentFeedModel {
         return this.#content.get();
     }
 
-    public get newComment(): Comment | undefined {
+    #newComment = new Computed(() => {
         if (this.comment.result) {
             return {
                 ...this.comment.result.Comment,
@@ -39,6 +39,10 @@ export class CommentFeedModel {
         }
 
         return undefined;
+    });
+
+    public get newComment(): Comment | undefined {
+        return this.#newComment.get();
     }
 
     public constructor(
@@ -48,8 +52,8 @@ export class CommentFeedModel {
         effect(
             () => {
                 if (this.newComment) {
-                    this.#cachedComments.set({
-                        ...untrack(() => this.#cachedComments.get()),
+                    this.cachedComments.set({
+                        ...untrack(() => this.cachedComments.get()),
                         [this.newComment.id]: this.newComment,
                     });
                 }
@@ -61,15 +65,11 @@ export class CommentFeedModel {
             () => {
                 if (!this.comment.pending) {
                     if (this.comment.error && this.comment.input) {
-                        let commentContent = String(this.comment.input.get("comment"));
+                        const commentContent = String(this.comment.input.get("comment"));
 
-                        this.#cachedComments.set(
-                            untrack(() => {
-                                let cache = this.#cachedComments.get();
-                                delete cache[this.tempCommentIdStore.id];
-                                return cache;
-                            }),
-                        );
+                        const cache = untrack(() => this.cachedComments.get());
+                        delete cache[untrack(() => this.tempCommentIdStore.id)];
+                        this.cachedComments.set(cache);
 
                         this.#content.set(commentContent);
                         this.tempCommentIdStore.regenerate();

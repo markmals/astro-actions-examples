@@ -10,44 +10,30 @@ const { postId, likeCount, isLiked } = Astro.props;
 
 <script>
     import { LikeButtonModel } from "~/lib/client/models/like-button-model";
-    import { effect } from "~/lib/client/signals";
+    import { ReactiveElement } from "~/lib/client/elements/reactive-element";
 
-    class LikeButtonElement extends HTMLElement {
-        #disconnect = new AbortController();
-        #model = new LikeButtonModel(this.dataset, { signal: this.#disconnect.signal });
-        #elements = {
-            countLabel: this.getElementsByTagName("span")[0],
-            button: this.getElementsByTagName("button")[0],
-        };
+    class LikeButtonElement extends ReactiveElement {
+        protected static override readonly tagName = "ui-like-button";
 
-        #hydrateRendering() {
-            effect(
-                () => {
-                    this.#elements.countLabel.textContent = this.#model.likeCount;
-                    this.#elements.button.disabled = !this.#model.buttonEnabled;
-                    this.#elements.button.textContent = this.#model.buttonSymbol;
-                },
-                { signal: this.#disconnect.signal },
-            );
-        }
+        private readonly model = new LikeButtonModel(this.dataset, {
+            signal: this.disconnect.signal,
+        });
 
-        #hydrateEventListeners() {
-            this.#elements.button.addEventListener("click", this.#model.clickButton, {
-                signal: this.#disconnect.signal,
+        private readonly countLabel = this.querySelector("span")!;
+        private readonly button = this.querySelector("button")!;
+
+        public connectedCallback() {
+            this.renderEffect(() => {
+                this.countLabel.textContent = this.model.likeCount;
+                this.button.disabled = !this.model.buttonEnabled;
+                this.button.textContent = this.model.buttonSymbol;
             });
-        }
 
-        connectedCallback() {
-            this.#hydrateRendering();
-            this.#hydrateEventListeners();
-        }
-
-        disconnectedCallback() {
-            this.#disconnect.abort();
+            this.hydrateListener(this.button, "click", this.model.clickButton);
         }
     }
 
-    customElements.define("ui-like-button", LikeButtonElement);
+    LikeButtonElement.register();
 </script>
 
 <ui-like-button data-is-liked={isLiked} data-post-id={postId} data-like-count={likeCount}>

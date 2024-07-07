@@ -21,7 +21,7 @@ function processPending() {
 
 export function effect(
     callback: () => void | (() => void),
-    options?: { signal: AbortSignal },
+    options?: { signal?: AbortSignal },
 ): void {
     let cleanup: (() => void) | void | undefined;
 

@@ -15,7 +15,7 @@ export function mapArray<Item, Result>(
     let indexes: ((v: number) => number)[] | null = transform.length > 1 ? [] : null;
 
     return new Computed(() => {
-        let newItems = array() || [];
+        const newItems = array() || [];
         let i: number;
         let j: number;
         //   (newItems as any)[$TRACK] // top level tracking
@@ -121,7 +121,7 @@ export function mapArray<Item, Result>(
                     return v;
                 };
                 indexes[j] = set;
-                let computed = new Computed(() => s.get());
+                const computed = new Computed(() => s.get());
                 return transform(newItems[j], computed);
             }
 
