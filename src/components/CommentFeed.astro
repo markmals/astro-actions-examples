@@ -14,14 +14,13 @@ comments = comments.sort((lhs, rhs) => lhs.createdOn.getTime() - rhs.createdOn.g
 
 <script>
     import { CommentFeedModel } from "~/lib/client/models/comment-feed-model";
-    import { Computed, effect } from "~/lib/client/signals";
-    import type { Comment } from "~/components/CommentPreview.astro";
-    import { Formatters } from "~/lib/formatters";
-    import { ActionError } from "astro:actions";
+    import { Computed } from "~/lib/client/signals";
+    import { ReactiveElement } from "~/lib/client/elements/reactive-element";
+    import { CommentListItemElement } from "~/lib/client/elements/comment-list-item";
+    import { ErrorAlert } from "~/lib/client/elements/error-alert";
 
-    class CommentFeedElement extends HTMLElement {
-        #disconnect = new AbortController();
-        #model = new CommentFeedModel(this.dataset, { signal: this.#disconnect.signal });
+    class CommentFeedElement extends ReactiveElement {
+        #model = new CommentFeedModel(this.dataset, { signal: this.disconnect.signal });
 
         #elements = {
             form: this.querySelector("form")!,
@@ -31,114 +30,56 @@ comments = comments.sort((lhs, rhs) => lhs.createdOn.getTime() - rhs.createdOn.g
             commentsList: this.querySelector("ul")!,
         };
 
-        #templates = {
-            errorAlert: document.getElementById("error-alert") as HTMLTemplateElement,
-            commentPreview: document.getElementById("comment-preview") as HTMLTemplateElement,
-        };
-
-        #createListItem(comment: Comment): HTMLLIElement {
-            let fragment = this.#templates.commentPreview.content.cloneNode(
-                true,
-            ) as DocumentFragment;
-
-            let list = fragment.firstElementChild as HTMLLIElement;
-            list.setAttribute("id", `comment-${comment.id}`);
-
-            let img = fragment.querySelector("img")!;
-            img.src = comment.user.image;
-
-            let span = fragment.querySelector("span")!;
-            span.textContent = comment.user.name;
-
-            let time = fragment.querySelector("time")!;
-            time.dateTime = Formatters.comment.formatAsISO(comment.createdOn);
-            time.textContent = Formatters.comment.formatForDisplay(comment.createdOn);
-
-            let paragraph = fragment.querySelector("p")!;
-            paragraph.textContent = comment.content;
-
-            return list;
-        }
-
-        #createErrorAlert(error: ActionError) {
-            let alertElement = this.#templates.errorAlert.content.cloneNode(true) as HTMLDivElement;
-            let messageLabel = alertElement.querySelector("h3")!;
-            messageLabel.textContent = error.message;
-            return alertElement;
-        }
-
         #commentListElements = new Computed(() =>
-            this.#model.comments.map(comment => this.#createListItem(comment)),
+            this.#model.comments.map(comment => new CommentListItemElement(comment)),
         );
 
         #hydrateRendering() {
             // Update the general form elements when the model values change
-            effect(
-                () => {
-                    this.#elements.commentIdInput.value = this.#model.tempCommentIdStore.id;
-                    this.#elements.textArea.value = this.#model.content;
-
-                    this.#elements.button.disabled = this.#model.comment.pending;
-                    this.#elements.textArea.disabled = this.#model.comment.pending;
-                },
-                { signal: this.#disconnect.signal },
-            );
+            this.renderEffect(() => {
+                this.#elements.commentIdInput.value = this.#model.tempCommentIdStore.id;
+                this.#elements.textArea.value = this.#model.content;
+                this.#elements.button.disabled = this.#model.comment.pending;
+                this.#elements.textArea.disabled = this.#model.comment.pending;
+            });
 
             // Update the comments list when the comments update
-            effect(
-                () => {
-                    if (this.#commentListElements.get().length) {
-                        let commentIds = Array.from(this.#elements.commentsList.children).map(
-                            element => element.getAttribute("id")!,
-                        );
+            this.renderEffect(() => {
+                if (this.#commentListElements.get().length) {
+                    let commentIds = Array.from(this.#elements.commentsList.children).map(
+                        element => element.getAttribute("id")!,
+                    );
 
-                        this.#elements.commentsList.append(
-                            ...this.#commentListElements
-                                .get()
-                                .filter(
-                                    element => !commentIds.includes(element.getAttribute("id")!),
-                                ),
-                        );
-                    }
-                },
-                {
-                    signal: this.#disconnect.signal,
-                },
-            );
+                    this.#elements.commentsList.append(
+                        ...this.#commentListElements
+                            .get()
+                            .filter(element => !commentIds.includes(element.getAttribute("id")!)),
+                    );
+                }
+            });
 
             // Show error alert if there is an error
             // Hide error alert if error is cleared
-            effect(
-                () => {
-                    if (this.#model.comment.error) {
-                        this.appendChild(this.#createErrorAlert(this.#model.comment.error));
-                    } else {
-                        this.querySelector(".alert")?.remove();
-                    }
-                },
-                {
-                    signal: this.#disconnect.signal,
-                },
-            );
+            let errorAlert = new ErrorAlert();
+            this.renderEffect(() => {
+                if (this.#model.comment.error) {
+                    errorAlert.message = this.#model.comment.error.message;
+                    this.appendChild(errorAlert.content);
+                } else {
+                    errorAlert.message = null;
+                    this.querySelector(".alert")?.remove();
+                }
+            });
         }
 
-        #hydrateEventListeners() {
-            this.#elements.form.addEventListener("submit", this.#model.handleFormSubmission, {
-                signal: this.#disconnect.signal,
-            });
-
-            this.#elements.textArea.addEventListener("input", this.#model.handleCommentInput, {
-                signal: this.#disconnect.signal,
-            });
+        #hydrateListeners() {
+            this.hydrateListener(this.#elements.form, "submit", this.#model.handleFormSubmission);
+            this.hydrateListener(this.#elements.textArea, "input", this.#model.handleCommentInput);
         }
 
         connectedCallback() {
             this.#hydrateRendering();
-            this.#hydrateEventListeners();
-        }
-
-        disconnectedCallback() {
-            this.#disconnect.abort();
+            this.#hydrateListeners();
         }
     }
 
