@@ -1,5 +1,5 @@
 import { actions } from "astro:actions";
-import { Action, effect, State, Computed } from "./Signals";
+import { Action, effect, State, Computed } from "./signals";
 
 export class LikeButtonModel {
     #likes = new Action(actions.like);
