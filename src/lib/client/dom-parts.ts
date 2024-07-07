@@ -1,13 +1,14 @@
-export class ChildNodePart<N extends Node> {
-    public constructor(public node: N) {}
+export class ChildNodePart<E extends Element> {
+    public constructor(public element: E) {}
 
+    /** Set the child node of the enclosing element */
     public set<Value extends Node | string | undefined | null>(newValue: Value) {
         if (newValue !== null && newValue !== undefined) {
             if (typeof newValue === "string") {
                 newValue = document.createTextNode(newValue) as any;
             }
 
-            this.node.replaceChild(this.node, newValue as any);
+            this.element.replaceChildren(newValue as any);
         }
     }
 }

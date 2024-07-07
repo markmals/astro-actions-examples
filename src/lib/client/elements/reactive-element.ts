@@ -53,19 +53,21 @@ export abstract class ReactiveElement extends HTMLElement {
     ): HTMLElementTagNameMap[K] | null;
     protected $<E extends Element = Element>(selectors: string): E | null;
     protected $(selectors: string) {
-        return new Proxy(this.querySelector(selectors)!, {
-            get(element, property: string) {
-                if (!(property in element)) {
-                    return element.getAttribute(property);
-                }
-                return Reflect.get(element, property);
-            },
-            set(element, property: string, value) {
-                if (typeof value !== "object" && typeof value !== "function") {
-                    element.setAttribute(property, String(value));
-                }
-                return Reflect.set(element, property, value);
-            },
-        }) as any;
+        return this.querySelector(selectors)!;
+
+        // new Proxy(this.querySelector(selectors)!, {
+        //     get(element, property: string) {
+        //         if (!(property in element)) {
+        //             return element.getAttribute(property);
+        //         }
+        //         return Reflect.get(element, property);
+        //     },
+        //     set(element, property: string, value) {
+        //         if (typeof value !== "object" && typeof value !== "function") {
+        //             element.setAttribute(property, String(value));
+        //         }
+        //         return Reflect.set(element, property, value);
+        //     },
+        // }) as any;
     }
 }
