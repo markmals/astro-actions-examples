@@ -10,7 +10,7 @@ body {
     margin-left: auto;
     margin-right: auto;
 
-    max-width: 42rem;
+    max-width: 60rem;
 
     color: var(--color-gray-700);
     background-color: var(--color-slate-50);
@@ -19,6 +19,10 @@ body {
     padding-bottom: var(--spacing-12);
 
     text-align: center;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 @media (min-width: 640px) {
@@ -36,10 +40,6 @@ body {
 }
 
 h1 {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: var(--spacing-4);
     padding-bottom: var(--spacing-12);
     font-size: var(--font-size-4xl);
     line-height: var(--font-size-4xl--line-height);
@@ -57,6 +57,7 @@ h1 {
 
 img.logo {
     height: var(--spacing-12);
+    display: inline-block;
 }
 
 ul.feed {
@@ -65,6 +66,7 @@ ul.feed {
     gap: var(--spacing-6);
     padding-bottom: var(--spacing-12);
     text-align: left;
+    max-width: 42rem;
 }
 
 button {
