@@ -1,6 +1,6 @@
 import { actions } from "astro:actions";
-import type { Comment } from "../components/CommentPreview.astro";
-import { UUIDStore, Action, effect, State, Computed, untrack } from "./signals";
+import type { Comment } from "~/components/CommentPreview.astro";
+import { UUIDStore, Action, effect, State, Computed, untrack } from "../signals";
 
 export class CommentFeedModel {
     public comment = new Action(actions.comment);

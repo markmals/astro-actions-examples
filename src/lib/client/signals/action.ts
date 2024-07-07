@@ -1,4 +1,4 @@
-import { Signal } from "signal-polyfill";
+import { State, untrack } from ".";
 import { ActionError } from "astro:actions";
 import type { ErrorInferenceObject, SafeResult } from "astro:actions";
 
@@ -28,8 +28,8 @@ export namespace AstroAction {
 export class Action<A extends AstroAction> {
     #action: A;
 
-    #input = new Signal.State<Input<A> | undefined>(undefined);
-    #response = new Signal.State<AstroAction.Response<A> | undefined>(undefined);
+    #input = new State<Input<A> | undefined>(undefined);
+    #response = new State<AstroAction.Response<A> | undefined>(undefined);
 
     public get pending(): boolean {
         return !!this.#input.get() && !this.#response.get();
@@ -57,7 +57,7 @@ export class Action<A extends AstroAction> {
     }
 
     retry() {
-        const cachedInput = Signal.subtle.untrack(() => this.#input.get());
+        const cachedInput = untrack(() => this.#input.get());
         if (!cachedInput) throw new Error("No submission to retry");
         this.submit(cachedInput);
     }

@@ -1,7 +1,7 @@
 import { db, Comment, eq, User } from "astro:db";
 import { ActionError, z } from "astro:actions";
-import { fetchCurrentUser } from "../lib/fetch-current-user";
-import { sleep } from "../lib/sleep";
+import { fetchCurrentUser } from "~/lib/server/fetch-current-user";
+import { sleep } from "~/lib/server/sleep";
 import type { ActionAPIContext } from "astro/actions/runtime/store.js";
 
 export const commentSchema = z.object({

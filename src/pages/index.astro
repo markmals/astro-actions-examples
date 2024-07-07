@@ -1,13 +1,13 @@
 ---
 import { ViewTransitions } from "astro:transitions";
-import { fetchAllPosts } from "../lib/fetch-all-posts";
-import PostCard from "../components/PostCard.astro";
-import { fetchCurrentUser } from "../lib/fetch-current-user";
+import { fetchAllPosts } from "~/lib/server/fetch-all-posts";
+import PostCard from "~/components/PostCard.astro";
+import { fetchCurrentUser } from "~/lib/server/fetch-current-user";
 
-import Alert from "../components/Alert.astro";
-import CommentPreview from "../components/CommentPreview.astro";
+import Alert from "~/components/Alert.astro";
+import CommentPreview from "~/components/CommentPreview.astro";
 
-import "../styles/styles.css";
+import "~/styles/styles.css";
 
 const currentUser = await fetchCurrentUser(Astro);
 const { allPosts, likedPosts } = await fetchAllPosts();
@@ -24,7 +24,7 @@ const { allPosts, likedPosts } = await fetchAllPosts();
     </head>
     <body>
         <h1>
-            Astro Actions + Signals + Web Components
+            Astro Actions + TC-39 Signals + Web Components
             <img class="logo" src="https://astro.build/assets/press/astro-icon-dark.svg" />
         </h1>
         <ul class="feed">

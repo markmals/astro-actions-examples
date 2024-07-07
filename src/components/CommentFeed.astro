@@ -1,5 +1,5 @@
 ---
-import type { HydratedPost } from "../lib/fetch-all-posts";
+import type { HydratedPost } from "../lib/server/fetch-all-posts";
 import CommentPreview from "./CommentPreview.astro";
 
 export interface Props {
@@ -13,10 +13,10 @@ comments = comments.sort((lhs, rhs) => lhs.createdOn.getTime() - rhs.createdOn.g
 ---
 
 <script>
-    import { CommentFeedModel } from "../client/comment-feed-model";
-    import { Computed, effect } from "../client/Signals";
-    import type { Comment } from "../components/CommentPreview.astro";
-    import { Formatters } from "../lib/formatters";
+    import { CommentFeedModel } from "~/lib/client/models/comment-feed-model";
+    import { Computed, effect } from "~/lib/client/signals";
+    import type { Comment } from "~/components/CommentPreview.astro";
+    import { Formatters } from "~/lib/formatters";
     import { ActionError } from "astro:actions";
 
     class CommentFeedElement extends HTMLElement {

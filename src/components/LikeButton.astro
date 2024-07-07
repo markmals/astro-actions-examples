@@ -9,8 +9,8 @@ const { postId, likeCount, isLiked } = Astro.props;
 ---
 
 <script>
-    import { LikeButtonModel } from "../client/like-button-model";
-    import { effect } from "../client/Signals";
+    import { LikeButtonModel } from "~/lib/client/models/like-button-model";
+    import { effect } from "~/lib/client/signals";
 
     class LikeButtonElement extends HTMLElement {
         #disconnect = new AbortController();

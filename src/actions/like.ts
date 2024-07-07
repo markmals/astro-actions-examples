@@ -1,9 +1,9 @@
 import { getApiContext } from "astro/actions/runtime/store.js";
 import { AstroError } from "astro/errors";
 import { db, and, eq, Like } from "astro:db";
-import { sleep } from "../lib/sleep";
+import { sleep } from "~/lib/server/sleep";
 import { z } from "astro:actions";
-import { fetchCurrentUser } from "../lib/fetch-current-user";
+import { fetchCurrentUser } from "~/lib/server/fetch-current-user";
 
 export const likeSchema = z.object({ postId: z.number() });
 

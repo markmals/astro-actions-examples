@@ -3,6 +3,10 @@
     "compilerOptions": {
         "jsx": "preserve",
         "jsxImportSource": "solid-js",
-        "experimentalDecorators": false
+        "experimentalDecorators": false,
+        "baseUrl": ".",
+        "paths": {
+            "~/*": ["./src/*"]
+        }
     }
 }
