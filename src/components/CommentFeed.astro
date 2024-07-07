@@ -103,6 +103,7 @@ comments = comments.sort((lhs, rhs) => lhs.createdOn.getTime() - rhs.createdOn.g
     <!-- New comment form -->
     <div class="comment-form-container">
         <img src={currentUser.image} />
+        <!-- TODO: Add progressive enhancement for form action -->
         <form>
             <input type="hidden" id="postId" name="postId" value={postId} />
             <input type="hidden" id="commentId" name="commentId" />
