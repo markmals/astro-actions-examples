@@ -4,6 +4,7 @@
 export * from "./action";
 export * from "./effect";
 export * from "./array";
+export * from "./selector";
 export * from "./uuid-store";
 
 import { Signal } from "signal-polyfill";
