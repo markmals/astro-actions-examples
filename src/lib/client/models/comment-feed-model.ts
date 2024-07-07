@@ -48,12 +48,10 @@ export class CommentFeedModel {
         effect(
             () => {
                 if (this.newComment) {
-                    this.#cachedComments.set(
-                        untrack(() => ({
-                            ...this.#cachedComments.get(),
-                            [this.newComment!.id]: this.newComment!,
-                        })),
-                    );
+                    this.#cachedComments.set({
+                        ...untrack(() => this.#cachedComments.get()),
+                        [this.newComment.id]: this.newComment,
+                    });
                 }
             },
             { signal },
