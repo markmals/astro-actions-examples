@@ -52,7 +52,7 @@ export abstract class ReactiveElement extends HTMLElement {
         selectors: K,
     ): HTMLElementTagNameMap[K] | null;
     protected $<E extends Element = Element>(selectors: string): E | null;
-    protected $<E extends Element = Element>(selectors: string): E | null {
+    protected $(selectors: string) {
         return new Proxy(this.querySelector(selectors)!, {
             get(element, property: string) {
                 if (!(property in element)) {
@@ -66,6 +66,6 @@ export abstract class ReactiveElement extends HTMLElement {
                 }
                 return Reflect.set(element, property, value);
             },
-        }) as E;
+        }) as any;
     }
 }

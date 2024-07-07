@@ -17,8 +17,8 @@ comments = comments.sort((lhs, rhs) => lhs.createdOn.getTime() - rhs.createdOn.g
     import { CommentFeedModel } from "~/lib/client/models/comment-feed-model";
     import { mapArray } from "~/lib/client/signals";
     import { ReactiveElement } from "~/lib/client/elements/reactive-element";
-    import { CommentListItemPart } from "~/lib/client/elements/comment-list-item";
-    import { ErrorAlertPart } from "~/lib/client/elements/error-alert";
+    import { CommentListItemCoordinator } from "~/lib/client/coordinators/comment-list-item";
+    import { ErrorAlertCoordinator } from "~/lib/client/coordinators/error-alert";
 
     class CommentFeedElement extends ReactiveElement {
         protected static override readonly tagName = "ui-comment-feed";
@@ -35,9 +35,9 @@ comments = comments.sort((lhs, rhs) => lhs.createdOn.getTime() - rhs.createdOn.g
             commentsList: this.$("ul")!,
         };
 
-        private readonly commentListItemParts = mapArray(
+        private readonly commentListItemCoordinators = mapArray(
             () => this.model.comments,
-            comment => new CommentListItemPart(comment),
+            comment => new CommentListItemCoordinator(comment),
         );
 
         private hydrateRendering() {
@@ -51,23 +51,23 @@ comments = comments.sort((lhs, rhs) => lhs.createdOn.getTime() - rhs.createdOn.g
 
             // Update the comments list when the comments update
             this.renderEffect(() => {
-                const parts = this.commentListItemParts.get();
+                const coordintors = this.commentListItemCoordinators.get();
 
-                if (parts.length) {
+                if (coordintors.length) {
                     // TODO: Diff the DOM less naïvely...
                     const commentIds = Array.from(this.elements.commentsList.children).map(
                         element => element.getAttribute("id")!,
                     );
 
                     this.elements.commentsList.append(
-                        ...parts
-                            .map(part => part.content)
+                        ...coordintors
+                            .map(coordinator => coordinator.content)
                             .filter(element => !commentIds.includes(element.getAttribute("id")!)),
                     );
                 }
             });
 
-            const errorAlert = new ErrorAlertPart();
+            const errorAlert = new ErrorAlertCoordinator();
             this.renderEffect(() => {
                 if (this.model.comment.error) {
                     // Show error alert if there is an error

@@ -11,6 +11,7 @@ const { postId, likeCount, isLiked } = Astro.props;
 <script>
     import { LikeButtonModel } from "~/lib/client/models/like-button-model";
     import { ReactiveElement } from "~/lib/client/elements/reactive-element";
+    import { AttributePart, ChildNodePart } from "~/lib/client/dom-parts";
 
     class LikeButtonElement extends ReactiveElement {
         protected static override readonly tagName = "ui-like-button";
@@ -19,14 +20,17 @@ const { postId, likeCount, isLiked } = Astro.props;
             signal: this.disconnect.signal,
         });
 
-        private readonly countLabel = this.$("span")!;
+        private readonly countLabel = new ChildNodePart(this.$("span")!);
+
         private readonly button = this.$("button")!;
+        private readonly buttonDisabled = new AttributePart(this.button, "disabled");
+        private readonly buttonContent = new ChildNodePart(this.button);
 
         public connectedCallback() {
             this.renderEffect(() => {
-                this.countLabel.textContent = this.model.likeCount;
-                this.button.disabled = !this.model.buttonEnabled;
-                this.button.textContent = this.model.buttonSymbol;
+                this.countLabel.set(this.model.likeCount);
+                this.buttonDisabled.set(!this.model.buttonEnabled);
+                this.buttonContent.set(this.model.buttonSymbol);
             });
 
             this.hydrateListener(this.button, "click", this.model.clickButton);
