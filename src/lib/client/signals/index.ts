@@ -3,6 +3,7 @@
 
 export * from "./action";
 export * from "./effect";
+export * from "./array";
 export * from "./uuid-store";
 
 import { Signal } from "signal-polyfill";

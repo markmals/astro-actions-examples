@@ -14,10 +14,10 @@ comments = comments.sort((lhs, rhs) => lhs.createdOn.getTime() - rhs.createdOn.g
 
 <script>
     import { CommentFeedModel } from "~/lib/client/models/comment-feed-model";
-    import { Computed } from "~/lib/client/signals";
+    import { mapArray } from "~/lib/client/signals";
     import { ReactiveElement } from "~/lib/client/elements/reactive-element";
-    import { CommentListItemElement } from "~/lib/client/elements/comment-list-item";
-    import { ErrorAlert } from "~/lib/client/elements/error-alert";
+    import { CommentListItemPart } from "~/lib/client/elements/comment-list-item";
+    import { ErrorAlertPart } from "~/lib/client/elements/error-alert";
 
     class CommentFeedElement extends ReactiveElement {
         #model = new CommentFeedModel(this.dataset, { signal: this.disconnect.signal });
@@ -30,8 +30,9 @@ comments = comments.sort((lhs, rhs) => lhs.createdOn.getTime() - rhs.createdOn.g
             commentsList: this.querySelector("ul")!,
         };
 
-        #commentListElements = new Computed(() =>
-            this.#model.comments.map(comment => new CommentListItemElement(comment)),
+        #commentListItemParts = mapArray(
+            () => this.#model.comments,
+            comment => new CommentListItemPart(comment),
         );
 
         #hydrateRendering() {
@@ -45,29 +46,32 @@ comments = comments.sort((lhs, rhs) => lhs.createdOn.getTime() - rhs.createdOn.g
 
             // Update the comments list when the comments update
             this.renderEffect(() => {
-                if (this.#commentListElements.get().length) {
+                let parts = this.#commentListItemParts.get();
+
+                if (parts.length) {
+                    // TODO: Diff the DOM less naïvely...
                     let commentIds = Array.from(this.#elements.commentsList.children).map(
                         element => element.getAttribute("id")!,
                     );
 
                     this.#elements.commentsList.append(
-                        ...this.#commentListElements
-                            .get()
+                        ...parts
+                            .map(part => part.content)
                             .filter(element => !commentIds.includes(element.getAttribute("id")!)),
                     );
                 }
             });
 
-            // Show error alert if there is an error
-            // Hide error alert if error is cleared
-            let errorAlert = new ErrorAlert();
+            let errorAlert = new ErrorAlertPart();
             this.renderEffect(() => {
                 if (this.#model.comment.error) {
+                    // Show error alert if there is an error
                     errorAlert.message = this.#model.comment.error.message;
                     this.appendChild(errorAlert.content);
                 } else {
+                    // Hide error alert if error is cleared
                     errorAlert.message = null;
-                    this.querySelector(".alert")?.remove();
+                    errorAlert.content.remove();
                 }
             });
         }
