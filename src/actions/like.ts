@@ -3,7 +3,7 @@ import { AstroError } from "astro/errors";
 import { db, and, eq, Like } from "astro:db";
 import { sleep } from "../lib/sleep";
 import { z } from "astro:actions";
-import { fetchCurrentUser } from "../lib/fetchCurrentUser";
+import { fetchCurrentUser } from "../lib/fetch-current-user";
 
 export const likeSchema = z.object({ postId: z.number() });
 

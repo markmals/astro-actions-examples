@@ -1,0 +1,73 @@
+---
+export interface Props {
+    postId: number;
+    likeCount: number;
+    isLiked: boolean;
+}
+
+const { postId, likeCount, isLiked } = Astro.props;
+---
+
+<script>
+    import { LikeButtonModel } from "../client/like-button-model";
+    import { effect } from "../client/Signals";
+
+    class LikeButtonElement extends HTMLElement {
+        #disconnect = new AbortController();
+        #model = new LikeButtonModel(this.dataset, { signal: this.#disconnect.signal });
+        #elements = {
+            countLabel: this.getElementsByTagName("span")[0],
+            button: this.getElementsByTagName("button")[0],
+        };
+
+        #hydrateRendering() {
+            effect(
+                () => {
+                    this.#elements.countLabel.textContent = this.#model.likeCount;
+                    this.#elements.button.disabled = !this.#model.buttonEnabled;
+                    this.#elements.button.textContent = this.#model.buttonSymbol;
+                },
+                { signal: this.#disconnect.signal },
+            );
+        }
+
+        #hydrateEventListeners() {
+            this.#elements.button.addEventListener("click", this.#model.clickButton, {
+                signal: this.#disconnect.signal,
+            });
+        }
+
+        connectedCallback() {
+            this.#hydrateRendering();
+            this.#hydrateEventListeners();
+        }
+
+        disconnectedCallback() {
+            this.#disconnect.abort();
+        }
+    }
+
+    customElements.define("ui-like-button", LikeButtonElement);
+</script>
+
+<ui-like-button data-is-liked={isLiked} data-post-id={postId} data-like-count={likeCount}>
+    <span>{likeCount}</span>
+    <button>
+        {isLiked ? "♥︎" : "♡"}
+    </button>
+</ui-like-button>
+
+<style>
+    span {
+        font-size: var(--font-size-sm);
+        line-height: var(--font-size-sm--line-height);
+    }
+
+    button {
+        color: var(--color-red-500);
+    }
+
+    button:disabled {
+        opacity: 50%;
+    }
+</style>

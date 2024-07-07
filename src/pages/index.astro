@@ -1,8 +1,11 @@
 ---
 import { ViewTransitions } from "astro:transitions";
-import { fetchAllPosts } from "../lib/fetchAllPosts";
+import { fetchAllPosts } from "../lib/fetch-all-posts";
 import PostCard from "../components/PostCard.astro";
-import { fetchCurrentUser } from "../lib/fetchCurrentUser";
+import { fetchCurrentUser } from "../lib/fetch-current-user";
+
+import Alert from "../components/Alert.astro";
+import CommentPreview from "../components/CommentPreview.astro";
 
 import "../styles/styles.css";
 
@@ -16,12 +19,12 @@ const { allPosts, likedPosts } = await fetchAllPosts();
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <meta name="viewport" content="width=device-width" />
         <meta name="generator" content={Astro.generator} />
-        <title>Solid Astro Actions</title>
+        <title>Astro Actions + Signals + Web Components</title>
         <ViewTransitions />
     </head>
     <body>
         <h1>
-            Solid Astro Actions
+            Astro Actions + Signals + Web Components
             <img class="logo" src="https://www.solidjs.com/img/logo/without-wordmark/logo.svg" />
             +
             <img class="logo" src="https://astro.build/assets/press/astro-icon-dark.svg" />
@@ -37,5 +40,13 @@ const { allPosts, likedPosts } = await fetchAllPosts();
                 ))
             }
         </ul>
+
+        <template id="error-alert">
+            <Alert />
+        </template>
+
+        <template id="comment-preview">
+            <CommentPreview />
+        </template>
     </body>
 </html>

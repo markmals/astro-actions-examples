@@ -1,7 +1,6 @@
 ---
-import type { HydratedPost } from "../lib/fetchAllPosts";
-import { CommentForm } from "./CommentForm";
-import { CommentPreview } from "./CommentPreview";
+import type { HydratedPost } from "../lib/fetch-all-posts";
+import CommentPreview from "./CommentPreview.astro";
 
 export interface Props {
     postId: number;
@@ -13,6 +12,160 @@ let { postId, currentUser, comments } = Astro.props;
 comments = comments.sort((lhs, rhs) => lhs.createdOn.getTime() - rhs.createdOn.getTime());
 ---
 
-<CommentForm client:load currentUser={currentUser} postId={postId}>
-    {comments.map(comment => <CommentPreview comment={comment} />)}
-</CommentForm>
+<script>
+    import { CommentFeedModel } from "../client/comment-feed-model";
+    import { Computed, effect } from "../client/Signals";
+    import type { Comment } from "../components/CommentPreview.astro";
+    import { Formatters } from "../lib/formatters";
+    import { ActionError } from "astro:actions";
+
+    class CommentFeedElement extends HTMLElement {
+        #disconnect = new AbortController();
+        #model = new CommentFeedModel(this.dataset, { signal: this.#disconnect.signal });
+
+        #elements = {
+            form: this.querySelector("form")!,
+            commentIdInput: this.querySelector<HTMLInputElement>("input#commentId")!,
+            textArea: this.querySelector("textarea")!,
+            button: this.querySelector<HTMLButtonElement>(".button-container > button")!,
+            commentsList: this.querySelector("ul")!,
+        };
+
+        #templates = {
+            errorAlert: document.getElementById("error-alert") as HTMLTemplateElement,
+            commentPreview: document.getElementById("comment-preview") as HTMLTemplateElement,
+        };
+
+        #createListItem(comment: Comment): HTMLLIElement {
+            let fragment = this.#templates.commentPreview.content.cloneNode(
+                true,
+            ) as DocumentFragment;
+
+            let list = fragment.firstElementChild as HTMLLIElement;
+            list.setAttribute("id", `comment-${comment.id}`);
+
+            let img = fragment.querySelector("img")!;
+            img.src = comment.user.image;
+
+            let span = fragment.querySelector("span")!;
+            span.textContent = comment.user.name;
+
+            let time = fragment.querySelector("time")!;
+            time.dateTime = Formatters.comment.formatAsISO(comment.createdOn);
+            time.textContent = Formatters.comment.formatForDisplay(comment.createdOn);
+
+            let paragraph = fragment.querySelector("p")!;
+            paragraph.textContent = comment.content;
+
+            return list;
+        }
+
+        #createErrorAlert(error: ActionError) {
+            let alertElement = this.#templates.errorAlert.content.cloneNode(true) as HTMLDivElement;
+            let messageLabel = alertElement.querySelector("h3")!;
+            messageLabel.textContent = error.message;
+            return alertElement;
+        }
+
+        #commentListElements = new Computed(() =>
+            this.#model.comments.map(comment => this.#createListItem(comment)),
+        );
+
+        #hydrateRendering() {
+            // Update the general form elements when the model values change
+            effect(
+                () => {
+                    this.#elements.commentIdInput.value = this.#model.tempCommentIdStore.id;
+                    this.#elements.textArea.value = this.#model.content;
+
+                    this.#elements.button.disabled = this.#model.comment.pending;
+                    this.#elements.textArea.disabled = this.#model.comment.pending;
+                },
+                { signal: this.#disconnect.signal },
+            );
+
+            // Update the comments list when the comments update
+            effect(
+                () => {
+                    if (this.#commentListElements.get().length) {
+                        let commentIds = Array.from(this.#elements.commentsList.children).map(
+                            element => element.id.replace("comment-", ""),
+                        );
+
+                        this.#elements.commentsList.append(
+                            ...this.#commentListElements
+                                .get()
+                                .filter(element =>
+                                    commentIds.includes(element.getAttribute("id")!),
+                                ),
+                        );
+                    }
+                },
+                {
+                    signal: this.#disconnect.signal,
+                },
+            );
+
+            // Show error alert if there is an error
+            // Hide error alert if error is cleared
+            effect(
+                () => {
+                    if (this.#model.comment.error) {
+                        this.appendChild(this.#createErrorAlert(this.#model.comment.error));
+                    } else {
+                        this.querySelector(".alert")?.remove();
+                    }
+                },
+                {
+                    signal: this.#disconnect.signal,
+                },
+            );
+        }
+
+        #hydrateEventListeners() {
+            this.#elements.form.addEventListener("submit", this.#model.handleFormSubmission, {
+                signal: this.#disconnect.signal,
+            });
+
+            this.#elements.textArea.addEventListener("input", this.#model.handleCommentInput, {
+                signal: this.#disconnect.signal,
+            });
+        }
+
+        connectedCallback() {
+            this.#hydrateRendering();
+            this.#hydrateEventListeners();
+        }
+
+        disconnectedCallback() {
+            this.#disconnect.abort();
+        }
+    }
+
+    customElements.define("ui-comment-feed", CommentFeedElement);
+</script>
+
+<ui-comment-feed data-user-name={currentUser.name} data-user-image={currentUser.image}>
+    <ul role="list" class="comments">
+        {comments.map(comment => <CommentPreview comment={comment} />)}
+    </ul>
+
+    <!-- New comment form -->
+    <div class="comment-form-container">
+        <img src={currentUser.image} />
+        <form>
+            <input type="hidden" id="postId" name="postId" value={postId} />
+            <input type="hidden" id="commentId" name="commentId" />
+
+            <div class="text-area-container">
+                <label for="comment" class="sr-only">Add your comment</label>
+                <textarea rows="2" name="comment" id="comment" placeholder="Add your comment..."
+                ></textarea>
+            </div>
+
+            <div class="button-container">
+                <button type="submit">Comment</button>
+            </div>
+        </form>
+    </div>
+</ui-comment-feed>

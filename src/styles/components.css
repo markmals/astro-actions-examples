@@ -41,14 +41,6 @@
     align-items: end;
 }
 
-button.btn-heart {
-    color: var(--color-red-500);
-}
-
-button.btn-heart:disabled {
-    opacity: 50%;
-}
-
 .comment-container {
     position: relative;
     display: flex;
