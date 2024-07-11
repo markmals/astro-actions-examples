@@ -1,45 +1,36 @@
 {
-    "name": "solid-astro-actions-example",
+    "name": "lit-astro-actions-example",
     "type": "module",
     "private": true,
     "scripts": {
         "dev": "astro dev",
         "format": "prettier . -w",
         "sync": "astro sync",
-        "build": "astro check && astro build",
+        "build": "astro build",
         "preview": "astro preview",
         "astro": "astro"
     },
     "dependencies": {
-        "@astrojs/check": "^0.6.0",
         "@astrojs/db": "^0.11.1",
-        "@astrojs/solid-js": "^4.2.0",
-        "@astrojs/tailwind": "^5.1.0",
-        "@tailwindcss/forms": "^0.5.7",
+        "@astrojs/lit": "^4.3.0",
+        "@webcomponents/template-shadowroot": "^0.2.1",
         "astro": "^4.10.0",
-        "cva": "^1.0.0-beta.1",
-        "signal-polyfill": "^0.1.1",
-        "signal-utils": "^0.18.0",
-        "solid-js": "^1.8.17",
-        "tailwindcss": "^3.4.3",
+        "lit": "^3.1.4",
         "typescript": "^5.4.5",
-        "unsplash-js": "^7.0.19",
-        "valibot": "^0.36.0"
+        "unsplash-js": "^7.0.19"
     },
     "devDependencies": {
         "@faker-js/faker": "^8.4.1",
         "drizzle-orm": "^0.30.10",
         "prettier": "^3.2.5",
-        "prettier-plugin-astro": "^0.13.0",
-        "prettier-plugin-tailwindcss": "^0.5.14"
+        "prettier-plugin-astro": "^0.13.0"
     },
     "prettier": {
         "printWidth": 100,
         "tabWidth": 4,
         "arrowParens": "avoid",
         "plugins": [
-            "prettier-plugin-astro",
-            "prettier-plugin-tailwindcss"
+            "prettier-plugin-astro"
         ]
     }
 }

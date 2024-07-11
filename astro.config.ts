@@ -1,9 +1,9 @@
 import { defineConfig } from "astro/config";
-import solid from "@astrojs/solid-js";
 import db from "@astrojs/db";
+import lit from "@astrojs/lit";
 
 export default defineConfig({
     output: "server",
-    integrations: [solid(), db()],
+    integrations: [lit(), db()],
     experimental: { actions: true },
 });

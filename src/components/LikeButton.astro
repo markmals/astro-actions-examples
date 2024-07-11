@@ -1,4 +1,6 @@
 ---
+import { LikeButtonElement } from "../lib/client/elements/ui-like-button";
+
 export interface Props {
     postId: number;
     likeCount: number;
@@ -8,64 +10,9 @@ export interface Props {
 const { postId, likeCount, isLiked } = Astro.props;
 ---
 
-<script>
-    import { LikeButtonModel } from "~/lib/client/models/like-button-model";
-    import { ReactiveElement } from "~/lib/client/elements/reactive-element";
-    import { AttributePart, ChildNodePart } from "~/lib/client/dom-parts";
-
-    class LikeButtonElement extends ReactiveElement {
-        protected static override readonly tagName = "ui-like-button";
-
-        private readonly model = new LikeButtonModel(this.dataset, {
-            signal: this.disconnect.signal,
-        });
-
-        private readonly countLabel = new ChildNodePart(this.$("span")!);
-
-        private readonly button = this.$("button")!;
-        private readonly buttonDisabled = new AttributePart(this.button, "disabled");
-        private readonly buttonContent = new ChildNodePart(this.button);
-
-        public connectedCallback() {
-            this.renderEffect(() => {
-                this.countLabel.set(this.model.likeCount);
-                this.buttonDisabled.set(!this.model.buttonEnabled);
-                this.buttonContent.set(this.model.buttonSymbol);
-            });
-
-            this.hydrateListener(this.button, "click", this.model.clickButton);
-        }
-    }
-
-    LikeButtonElement.register();
-</script>
-
-<ui-like-button data-is-liked={isLiked} data-post-id={postId} data-like-count={likeCount}>
-    <span>{likeCount}</span>
-    <button>
-        {isLiked ? "♥︎" : "♡"}
-    </button>
-</ui-like-button>
-
-<style>
-    ui-like-button {
-        display: flex;
-        flex-direction: row;
-        justify-content: start;
-        align-items: center;
-        gap: var(--spacing-2);
-    }
-
-    span {
-        font-size: var(--font-size-sm);
-        line-height: var(--font-size-sm--line-height);
-    }
-
-    button {
-        color: var(--color-red-500);
-    }
-
-    button:disabled {
-        opacity: 50%;
-    }
-</style>
+<LikeButtonElement
+    data-is-liked={isLiked}
+    data-post-id={postId}
+    data-like-count={likeCount}
+    client:load
+/>
