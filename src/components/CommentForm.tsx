@@ -1,6 +1,6 @@
 import { actions } from "astro:actions";
 import { useAction } from "../lib/solid-actions";
-import { For, Show, createMemo, createSignal, untrack } from "solid-js";
+import { For, Show, createMemo, createSignal } from "solid-js";
 import type { ParentProps } from "solid-js";
 import type { HydratedPost } from "../lib/fetchAllPosts";
 import { CommentPreview, type Comment } from "./CommentPreview";
@@ -11,28 +11,14 @@ export interface CommentFormProps extends ParentProps {
     postId: number;
 }
 
-function removeDuplicates<T, U>({ by: predicate }: { by: (value: T) => U }, array: T[]) {
-    const uniqueKeys = new Set();
-    return array.filter(x => {
-        const key = predicate(x);
-        const isUnique = !uniqueKeys.has(key);
-        uniqueKeys.add(key);
-        return isUnique;
-    });
-}
-
 export function CommentForm(props: CommentFormProps) {
     const [comment, { Form }] = useAction(actions.comment);
 
-    const tempId = createMemo<string>(previous => {
-        // We're not waiting on a response and we have an error or a result
-        if (!comment.pending && (comment.error || comment.result)) {
-            // Reset our UUID
-            return crypto.randomUUID();
-        }
-
-        return previous;
-    }, crypto.randomUUID());
+    const newCommentId = createMemo<string>(
+        // If we're not waiting on a response and we have a result, then reset our id
+        previous => (!comment.pending && comment.result ? crypto.randomUUID() : previous),
+        crypto.randomUUID(),
+    );
 
     const newComment = createMemo<Comment | undefined>(() => {
         if (comment.result) {
@@ -42,7 +28,7 @@ export function CommentForm(props: CommentFormProps) {
             };
         } else if (comment.input && !comment.error) {
             return {
-                id: tempId(),
+                id: newCommentId(),
                 content: comment.input?.get("comment") as string,
                 createdOn: new Date(),
                 user: {
@@ -57,13 +43,18 @@ export function CommentForm(props: CommentFormProps) {
 
     const comments = createMemo<Comment[]>(previous => {
         const haveNewError = !comment.pending && comment.error;
-
         if (haveNewError) {
-            return previous.slice(0, -1);
+            return previous.filter(comment => comment.id !== newCommentId());
         }
 
-        const c = newComment();
-        if (c) return removeDuplicates({ by: comment => comment.id }, [...previous, c]);
+        const optimisticComment = newComment();
+        if (optimisticComment) {
+            return previous.some(comment => comment.id === optimisticComment.id)
+                ? previous.map(comment =>
+                      comment.id === optimisticComment.id ? optimisticComment : comment,
+                  )
+                : [...previous, optimisticComment];
+        }
 
         return previous;
     }, []);
@@ -84,7 +75,9 @@ export function CommentForm(props: CommentFormProps) {
     return (
         <>
             <ul role="list" class="comments">
+                {/* Server-rendered comments */}
                 {props.children}
+                {/* Client-rendered comments */}
                 <For each={comments()}>{comment => <CommentPreview comment={comment} />}</For>
             </ul>
 
@@ -93,7 +86,7 @@ export function CommentForm(props: CommentFormProps) {
                 <img src={props.currentUser.image} />
                 <Form onSubmit={() => setContent("")}>
                     <input type="hidden" id="postId" name="postId" value={props.postId} />
-                    <input type="hidden" id="commentId" name="commentId" value={tempId()} />
+                    <input type="hidden" id="commentId" name="commentId" value={newCommentId()} />
 
                     <div class="text-area-container">
                         <label for="comment" class="sr-only">
