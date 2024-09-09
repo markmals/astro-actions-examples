@@ -2,6 +2,8 @@ import { batch, children, createSignal, splitProps, untrack } from "solid-js";
 import type { ComponentProps, ParentComponent, ParentProps } from "solid-js";
 import { ActionError, getActionProps } from "astro:actions";
 import type { ErrorInferenceObject, SafeResult } from "astro:actions";
+import { createStore } from "solid-js/store/types/server.js";
+import { reconcile } from "solid-js/store";
 
 export type FormMethod = "get" | "post" | "put" | "patch" | "delete";
 
@@ -80,7 +82,7 @@ export function useAction<A extends AstroAction>(
     type Res = { data?: Output<A>; error?: ActionError<Data<A>> };
 
     const [input, setInput] = createSignal<Input<A>>();
-    const [response, setResponse] = createSignal<Res>();
+    const [response, setResponse] = createStore<Res | undefined>(undefined);
 
     async function submit(input: Input<A>): Promise<void> {
         batch(() => {
@@ -92,10 +94,12 @@ export function useAction<A extends AstroAction>(
 
         const res = await astroAction.safe(input);
 
-        setResponse({
-            data: res.data as Output<A>,
-            error: res.error,
-        });
+        setResponse(
+            reconcile({
+                data: res.data as Output<A>,
+                error: res.error,
+            }),
+        );
     }
 
     submit.Form = (props: ParentProps & FormProps) => {
@@ -109,7 +113,7 @@ export function useAction<A extends AstroAction>(
                 onSubmit={async event => {
                     event.preventDefault();
                     // TODO: Throw fatal error if trying to submit FormData to a JSON handler?
-                    (submit as Submitter<FormData>)(new FormData(event.currentTarget));
+                    submit(new FormData(event.currentTarget) as Input<A>);
                     // TODO: async onSubmit
                     if (locals.onSubmit) locals.onSubmit(event);
                 }}
@@ -123,28 +127,23 @@ export function useAction<A extends AstroAction>(
     return [
         {
             get pending(): boolean {
-                return !!input() && !response();
+                return !!input() && !response;
             },
-
             get input(): Input<A> | undefined {
                 return input();
             },
-
             get result(): Output<A> | undefined {
-                return response()?.data;
+                return response?.data;
             },
-
             get error(): ActionError<Data<A>> | undefined {
-                return response()?.error;
+                return response?.error;
             },
-
             clear() {
                 batch(() => {
                     setInput(undefined);
                     setResponse(undefined);
                 });
             },
-
             retry() {
                 const cachedInput = untrack(input);
                 if (!cachedInput) throw new Error("No submission to retry");
