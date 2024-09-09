@@ -1,6 +1,6 @@
 import { Formatters } from "../lib/formatters";
 
-export type Comment = {
+export interface Comment {
     id: string;
     content: string;
     createdOn: Date | string;
@@ -8,13 +8,9 @@ export type Comment = {
         name: string;
         image: string;
     };
-};
-
-export interface CommentPreviewProps {
-    comment: Comment;
 }
 
-export function CommentPreview(props: CommentPreviewProps) {
+export function CommentPreview(props: { comment: Comment }) {
     return (
         <li class="comment-container">
             <div class="comment-line-container">

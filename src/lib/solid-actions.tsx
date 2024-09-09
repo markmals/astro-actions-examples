@@ -66,13 +66,13 @@ export type Action<Input, Output, Data extends ErrorInferenceObject> = [
     Submitter<Input>,
 ];
 
-export type AstroAction<
+export interface AstroAction<
     Input = any,
     Output = {} | undefined,
     Data extends ErrorInferenceObject = ErrorInferenceObject,
-> = {
+> {
     safe: (input: Input) => Promise<SafeResult<Data, Output>>;
-};
+}
 
 export function useAction<A extends AstroAction>(
     astroAction: A,
