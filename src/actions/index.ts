@@ -1,4 +1,4 @@
-import { defineAction, z } from "astro:actions";
+import { defineAction } from "astro:actions";
 import { likePost, likeSchema } from "./like";
 import { commentOnPost, commentSchema } from "./comment";
 
