@@ -55,15 +55,17 @@ export type Data<A extends AstroAction> =
 export type Submitter<Input> = ((input: Input) => Promise<void>) &
     (Input extends FormData ? { Form: ParentComponent<FormProps> } : {});
 
+export interface ActionState<Input, Output, Data extends ErrorInferenceObject> {
+    pending: boolean;
+    input?: Input;
+    result?: Output;
+    error?: ActionError<Data>;
+    clear(): void;
+    retry(): void;
+}
+
 export type Action<Input, Output, Data extends ErrorInferenceObject> = [
-    {
-        pending: boolean;
-        input?: Input;
-        result?: Output;
-        error?: ActionError<Data>;
-        clear(): void;
-        retry(): void;
-    },
+    ActionState<Input, Output, Data>,
     Submitter<Input>,
 ];
 
