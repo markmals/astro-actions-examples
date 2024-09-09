@@ -12,24 +12,24 @@ export interface CommentFormProps extends ParentProps {
 }
 
 export function CommentForm(props: CommentFormProps) {
-    const [comment, { Form }] = useAction(actions.comment);
+    const [state, { Form }] = useAction(actions.comment);
 
-    const newCommentId = createMemo<string>(
+    const commentId = createMemo<string>(
         // If we're not waiting on a response and we have a result, then reset our id
-        previous => (!comment.pending && comment.result ? crypto.randomUUID() : previous),
+        previous => (!state.pending && state.result ? crypto.randomUUID() : previous),
         crypto.randomUUID(),
     );
 
-    const newComment = createMemo<Comment | undefined>(() => {
-        if (comment.result) {
+    const comment = createMemo<Comment | undefined>(() => {
+        if (state.result) {
             return {
-                ...comment.result.Comment,
-                user: comment.result.User,
+                ...state.result.Comment,
+                user: state.result.User,
             };
-        } else if (comment.input && !comment.error) {
+        } else if (state.input && !state.error) {
             return {
-                id: newCommentId(),
-                content: comment.input?.get("comment") as string,
+                id: commentId(),
+                content: state.input?.get("comment") as string,
                 createdOn: new Date(),
                 user: {
                     name: props.currentUser.name,
@@ -42,12 +42,12 @@ export function CommentForm(props: CommentFormProps) {
     });
 
     const comments = createMemo<Comment[]>(previous => {
-        const haveNewError = !comment.pending && comment.error;
+        const haveNewError = !state.pending && state.error;
         if (haveNewError) {
-            return previous.filter(comment => comment.id !== newCommentId());
+            return previous.filter(comment => comment.id !== commentId());
         }
 
-        const optimisticComment = newComment();
+        const optimisticComment = comment();
         if (optimisticComment) {
             return previous.some(comment => comment.id === optimisticComment.id)
                 ? previous.map(comment =>
@@ -61,12 +61,12 @@ export function CommentForm(props: CommentFormProps) {
 
     const [content, setContent] = createSignal("");
     const displayedContent = createMemo(() => {
-        const haveNewError = !comment.pending && comment.error;
+        const haveNewError = !state.pending && state.error;
 
-        if (haveNewError && comment.input) {
+        if (haveNewError && state.input) {
             // Get previous content from the optimistic data
             // Because content.value is empty
-            return comment.input.get("comment") as string;
+            return state.input.get("comment") as string;
         }
 
         return content();
@@ -86,7 +86,7 @@ export function CommentForm(props: CommentFormProps) {
                 <img src={props.currentUser.image} />
                 <Form onSubmit={() => setContent("")}>
                     <input type="hidden" id="postId" name="postId" value={props.postId} />
-                    <input type="hidden" id="commentId" name="commentId" value={newCommentId()} />
+                    <input type="hidden" id="commentId" name="commentId" value={commentId()} />
 
                     <div class="text-area-container">
                         <label for="comment" class="sr-only">
@@ -103,15 +103,15 @@ export function CommentForm(props: CommentFormProps) {
                     </div>
 
                     <div class="button-container">
-                        <button type="submit" disabled={comment.pending}>
+                        <button type="submit" disabled={state.pending}>
                             Comment
                         </button>
                     </div>
                 </Form>
             </div>
 
-            <Show when={comment.error}>
-                <Alert>{comment.error!.message}</Alert>
+            <Show when={state.error}>
+                <Alert>{state.error!.message}</Alert>
             </Show>
         </>
     );
