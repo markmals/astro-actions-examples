@@ -1,6 +1,7 @@
 import { actions } from "astro:actions";
-import { useAction } from "../lib/solid-actions";
-import { Show, createEffect, createMemo, createSignal } from "solid-js";
+import { useAction } from "../lib/actions";
+import { useComputed, useSignal, useSignalEffect as useEffect } from "@preact/signals";
+import { Show } from "./control-flow/Show";
 
 export interface LikeButtonProps {
     postId: number;
@@ -9,42 +10,44 @@ export interface LikeButtonProps {
 }
 
 export function LikeButton(props: LikeButtonProps) {
-    const [likes, like] = useAction(actions.like);
-    const [isLiked, setIsLiked] = createSignal(props.isLiked);
+    const likes = useAction(actions.like);
+    const isLiked = useSignal(props.isLiked);
 
-    // There is probably a better way to cache this value, but I don't
-    // know what the Solid.js equivelant of RxJS's `filter` is...
-    const [prevResult, setPrevResult] = createSignal(props.likeCount);
+    const prevResult = useSignal(props.likeCount);
 
-    createEffect(() => {
-        if (likes.result !== undefined) setPrevResult(likes.result);
+    useEffect(() => {
+        if (likes.result.value !== undefined) {
+            prevResult.value = likes.result.value;
+        }
     });
 
-    const result = createMemo(() => (likes.result === undefined ? prevResult() : likes.result));
+    const result = useComputed(() =>
+        likes.result.value === undefined ? prevResult.value : likes.result.value,
+    );
 
     // Optimistic UI
-    const likeCount = createMemo(() => {
-        if (likes.pending) {
+    const likeCount = useComputed(() => {
+        if (likes.pending.value) {
             // By this time we've set isLiked to its optimistic value
-            return isLiked() ? result() + 1 : result() - 1;
+            return isLiked.value ? result.value + 1 : result.value - 1;
         }
-        return result();
+        return result.value;
     });
 
     async function clickLikeButton() {
-        setIsLiked(isLiked => !isLiked);
-        await like({ postId: props.postId });
+        isLiked.value = !isLiked.value;
+        await likes.submit({ postId: props.postId });
 
-        if (likes.error) {
-            setIsLiked(isLiked => !isLiked);
+        if (likes.error.value) {
+            isLiked.value = !isLiked.value;
         }
     }
 
     return (
         <>
-            <span class="text-sm">{likeCount()}</span>
+            <span class="text-sm">{likeCount}</span>
             <button class="btn-heart" disabled={likes.pending} onClick={clickLikeButton}>
-                <Show when={isLiked()} fallback={"♡"}>
+                <Show when={isLiked} fallback={"♡"}>
                     ♥︎
                 </Show>
             </button>

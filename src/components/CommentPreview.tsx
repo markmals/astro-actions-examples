@@ -1,6 +1,6 @@
 import { Formatters } from "../lib/formatters";
 
-export type Comment = {
+export interface Comment {
     id: string;
     content: string;
     createdOn: Date | string;
@@ -8,32 +8,26 @@ export type Comment = {
         name: string;
         image: string;
     };
-};
-
-export interface CommentPreviewProps {
-    comment: Comment;
 }
 
-export function CommentPreview(props: CommentPreviewProps) {
-    return (
-        <li class="comment-container">
-            <div class="comment-line-container">
-                <div class="comment-line"></div>
-            </div>
+export const CommentPreview = ({ comment }: { comment: Comment }) => (
+    <li class="comment-container">
+        <div class="comment-line-container">
+            <div class="comment-line"></div>
+        </div>
 
-            <img src={props.comment.user.image} class="comment-user-image" />
+        <img src={comment.user.image} class="comment-user-image" />
 
-            <div class="comment-body">
-                <div>
-                    <div class="comment-user-name">
-                        <span>{props.comment.user.name}</span> commented
-                    </div>
-                    <time datetime={Formatters.comment.formatAsISO(props.comment.createdOn)}>
-                        {Formatters.comment.formatForDisplay(props.comment.createdOn)}
-                    </time>
+        <div class="comment-body">
+            <div>
+                <div class="comment-user-name">
+                    <span>{comment.user.name}</span> commented
                 </div>
-                <p>{props.comment.content}</p>
+                <time datetime={Formatters.comment.formatAsISO(comment.createdOn)}>
+                    {Formatters.comment.formatForDisplay(comment.createdOn)}
+                </time>
             </div>
-        </li>
-    );
-}
+            <p>{comment.content}</p>
+        </div>
+    </li>
+);

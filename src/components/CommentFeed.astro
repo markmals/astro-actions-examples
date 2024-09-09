@@ -14,5 +14,7 @@ comments = comments.sort((lhs, rhs) => lhs.createdOn.getTime() - rhs.createdOn.g
 ---
 
 <CommentForm client:load currentUser={currentUser} postId={postId}>
+    <!-- We can skip hydrating the comments that come from the server, -->
+    <!-- because they're not interactive -->
     {comments.map(comment => <CommentPreview comment={comment} />)}
 </CommentForm>

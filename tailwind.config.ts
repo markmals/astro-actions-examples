@@ -2,6 +2,6 @@ import type { Config } from "tailwindcss";
 import forms from "@tailwindcss/forms";
 
 export default {
-    content: [],
+    content: ["./src/**/*.{astro,tsx}"],
     plugins: [forms()],
 } satisfies Config;
