@@ -1,4 +1,4 @@
-import { Formatters } from "../lib/formatters";
+import { formatters } from "../lib/formatters";
 
 export interface Comment {
     id: string;
@@ -24,8 +24,8 @@ export function CommentPreview(props: { comment: Comment }) {
                     <div class="comment-user-name">
                         <span>{props.comment.user.name}</span> commented
                     </div>
-                    <time datetime={Formatters.comment.formatAsISO(props.comment.createdOn)}>
-                        {Formatters.comment.formatForDisplay(props.comment.createdOn)}
+                    <time datetime={formatters.comment.formatAsISO(props.comment.createdOn)}>
+                        {formatters.comment.formatForDisplay(props.comment.createdOn)}
                     </time>
                 </div>
                 <p>{props.comment.content}</p>
