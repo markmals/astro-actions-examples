@@ -1,7 +1,7 @@
 import { getApiContext } from "astro/actions/runtime/store.js";
 import { AstroError } from "astro/errors";
 import { db, and, eq, Like } from "astro:db";
-import { sleep } from "../lib/sleep";
+import { delay } from "@std/async";
 import { z } from "astro:actions";
 import { fetchCurrentUser } from "../lib/fetchCurrentUser";
 
@@ -9,7 +9,7 @@ export const likeSchema = z.object({ postId: z.number() });
 
 export async function likePost({ postId }: z.infer<typeof likeSchema>) {
     // Simulate server slowness
-    await sleep(1000);
+    await delay(1000);
 
     // Simulate random faiulre
     if (Math.random() < 0.3) {

@@ -1,7 +1,7 @@
 import { db, Comment, eq, User } from "astro:db";
 import { ActionError, z } from "astro:actions";
 import { fetchCurrentUser } from "../lib/fetchCurrentUser";
-import { sleep } from "../lib/sleep";
+import { delay } from "@std/async";
 import type { ActionAPIContext } from "astro/actions/runtime/store.js";
 
 export const commentSchema = z.object({
@@ -15,7 +15,7 @@ export async function commentOnPost(
     context: ActionAPIContext,
 ) {
     // Simulate server slowness
-    await sleep(1000);
+    await delay(1000);
 
     // Simulate random faiulre
     if (content.includes("a")) {
