@@ -1,17 +1,9 @@
 import { actions } from "astro:actions";
 import { useAction } from "../lib/solid-actions";
-import {
-    For,
-    Show,
-    createEffect,
-    createMemo,
-    createSignal,
-    untrack,
-    type ParentProps,
-} from "solid-js";
+import { For, Show, createMemo, createSignal, untrack } from "solid-js";
+import type { ParentProps } from "solid-js";
 import type { HydratedPost } from "../lib/fetchAllPosts";
 import { CommentPreview, type Comment } from "./CommentPreview";
-import { createStore, produce } from "solid-js/store";
 import { Alert } from "./Alert";
 
 export interface CommentFormProps extends ParentProps {
@@ -19,25 +11,28 @@ export interface CommentFormProps extends ParentProps {
     postId: number;
 }
 
-function createUUIDStore() {
-    const [id, setId] = createSignal(crypto.randomUUID());
-
-    return {
-        get id() {
-            return id();
-        },
-        regenerate() {
-            setId(crypto.randomUUID());
-        },
-    };
+function removeDuplicates<T, U>({ by: predicate }: { by: (value: T) => U }, array: T[]) {
+    const uniqueKeys = new Set();
+    return array.filter(x => {
+        const key = predicate(x);
+        const isUnique = !uniqueKeys.has(key);
+        uniqueKeys.add(key);
+        return isUnique;
+    });
 }
 
 export function CommentForm(props: CommentFormProps) {
     const [comment, { Form }] = useAction(actions.comment);
-    const [cachedComments, setCachedComments] = createStore<Record<string, Comment>>({});
-    const [content, setContent] = createSignal("");
 
-    const tempCommentIdStore = createUUIDStore();
+    const tempId = createMemo<string>(previous => {
+        // We're not waiting on a response and we have an error or a result
+        if (!comment.pending && (comment.error || comment.result)) {
+            // Reset our UUID
+            return crypto.randomUUID();
+        }
+
+        return previous;
+    }, crypto.randomUUID());
 
     const newComment = createMemo<Comment | undefined>(() => {
         if (comment.result) {
@@ -47,8 +42,8 @@ export function CommentForm(props: CommentFormProps) {
             };
         } else if (comment.input && !comment.error) {
             return {
-                id: tempCommentIdStore.id,
-                content: comment.input.get("comment") as string,
+                id: tempId(),
+                content: comment.input?.get("comment") as string,
                 createdOn: new Date(),
                 user: {
                     name: props.currentUser.name,
@@ -60,44 +55,37 @@ export function CommentForm(props: CommentFormProps) {
         return undefined;
     });
 
-    createEffect(() => {
+    const comments = createMemo<Comment[]>(previous => {
+        const haveNewError = !comment.pending && comment.error;
+
+        if (haveNewError) {
+            return previous.slice(0, -1);
+        }
+
         const c = newComment();
+        if (c) return removeDuplicates({ by: comment => comment.id }, [...previous, c]);
 
-        if (c) {
-            setCachedComments(
-                produce(cache => {
-                    cache[c.id] = c;
-                }),
-            );
+        return previous;
+    }, []);
+
+    const [content, setContent] = createSignal("");
+    const displayedContent = createMemo(() => {
+        const haveNewError = !comment.pending && comment.error;
+
+        if (haveNewError && comment.input) {
+            // Get previous content from the optimistic data
+            // Because content.value is empty
+            return comment.input.get("comment") as string;
         }
-    });
 
-    createEffect(() => {
-        if (!comment.pending) {
-            if (comment.error && comment.input) {
-                const commentContent = comment.input.get("comment") as string;
-
-                setCachedComments(
-                    produce(cache => {
-                        delete cache[untrack(() => tempCommentIdStore.id)];
-                    }),
-                );
-
-                setContent(commentContent);
-                tempCommentIdStore.regenerate();
-            } else if (comment.result) {
-                tempCommentIdStore.regenerate();
-            }
-        }
+        return content();
     });
 
     return (
         <>
             <ul role="list" class="comments">
                 {props.children}
-                <For each={Array.from(Object.entries(cachedComments))}>
-                    {([_, comment]) => <CommentPreview comment={comment} />}
-                </For>
+                <For each={comments()}>{comment => <CommentPreview comment={comment} />}</For>
             </ul>
 
             {/* New comment form */}
@@ -105,12 +93,7 @@ export function CommentForm(props: CommentFormProps) {
                 <img src={props.currentUser.image} />
                 <Form onSubmit={() => setContent("")}>
                     <input type="hidden" id="postId" name="postId" value={props.postId} />
-                    <input
-                        type="hidden"
-                        id="commentId"
-                        name="commentId"
-                        value={tempCommentIdStore.id}
-                    />
+                    <input type="hidden" id="commentId" name="commentId" value={tempId()} />
 
                     <div class="text-area-container">
                         <label for="comment" class="sr-only">
@@ -121,7 +104,7 @@ export function CommentForm(props: CommentFormProps) {
                             name="comment"
                             id="comment"
                             placeholder="Add your comment..."
-                            value={content()}
+                            value={displayedContent()}
                             onInput={e => setContent(e.target.value)}
                         ></textarea>
                     </div>

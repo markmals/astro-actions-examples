@@ -1,6 +1,6 @@
 import { actions } from "astro:actions";
 import { useAction } from "../lib/solid-actions";
-import { Show, createEffect, createMemo, createSignal } from "solid-js";
+import { Show, createMemo, createSignal } from "solid-js";
 
 export interface LikeButtonProps {
     postId: number;
@@ -12,15 +12,10 @@ export function LikeButton(props: LikeButtonProps) {
     const [likes, like] = useAction(actions.like);
     const [isLiked, setIsLiked] = createSignal(props.isLiked);
 
-    // There is probably a better way to cache this value, but I don't
-    // know what the Solid.js equivelant of RxJS's `filter` is...
-    const [prevResult, setPrevResult] = createSignal(props.likeCount);
-
-    createEffect(() => {
-        if (likes.result !== undefined) setPrevResult(likes.result);
-    });
-
-    const result = createMemo(() => (likes.result === undefined ? prevResult() : likes.result));
+    const result = createMemo<number>(
+        previous => (likes.result ? likes.result : previous),
+        props.likeCount,
+    );
 
     // Optimistic UI
     const likeCount = createMemo(() => {
