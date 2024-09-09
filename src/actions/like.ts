@@ -12,7 +12,7 @@ export async function likePost({ postId }: z.infer<typeof likeSchema>) {
     await sleep(1000);
 
     // Simulate random faiulre
-    if (Math.random() < 0.1) {
+    if (Math.random() < 0.3) {
         console.error("[RANDOM LIKE FAILURE]:", postId, "cannot be liked... for random reasons");
         throw new AstroError("Fail");
     }
