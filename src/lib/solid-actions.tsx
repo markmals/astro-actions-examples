@@ -44,14 +44,13 @@ export interface FormProps extends Omit<ComponentProps<"form">, "method" | "onSu
     onSubmit?: (event: SubmitEvent) => void;
 }
 
-export type Input<A extends AstroAction> =
-    A extends AstroAction<infer Input, infer Output, infer Data> ? Input : never;
+export type Input<A extends AstroAction> = A extends AstroAction<infer Input> ? Input : never;
 
 export type Output<A extends AstroAction> =
-    A extends AstroAction<infer Input, infer Output, infer Data> ? Output : never;
+    A extends AstroAction<infer _, infer Output> ? Output : never;
 
 export type Data<A extends AstroAction> =
-    A extends AstroAction<infer Input, infer Output, infer Data> ? Data : never;
+    A extends AstroAction<infer _, infer _, infer Data> ? Data : never;
 
 export type Submitter<Input> = ((input: Input) => Promise<void>) &
     (Input extends FormData ? { Form: ParentComponent<FormProps> } : {});
