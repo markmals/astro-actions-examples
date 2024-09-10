@@ -1,35 +1,57 @@
-import { actions } from "astro:actions";
-import { useAction } from "../lib/solid-actions";
-import { For, Show, createMemo, createSignal } from "solid-js";
-import type { ParentProps } from "solid-js";
+import { actions, type SafeResult } from "astro:actions";
 import type { HydratedPost } from "../lib/fetchAllPosts";
 import { CommentPreview, type Comment } from "./CommentPreview";
 import { Alert } from "./Alert";
+import { useActionState, useOptimistic, useState, type PropsWithChildren } from "react";
+import { experimental_withState as withState } from "@astrojs/react/actions";
+import type { z } from "astro:schema";
+import type { commentSchema } from "../actions/comment";
+import { useDerived } from "../lib/useDerived";
 
-export interface CommentFormProps extends ParentProps {
+export interface CommentFormProps extends PropsWithChildren {
     currentUser: HydratedPost["user"];
     postId: number;
 }
 
 export function CommentForm(props: CommentFormProps) {
-    const [state, { Form }] = useAction(actions.comment);
-
-    const commentId = createMemo<string>(
-        // If we're not waiting on a response and we have a result, then reset our id
-        previous => (!state.pending && state.result ? crypto.randomUUID() : previous),
-        crypto.randomUUID(),
+    const [comments, setComments] = useState<string[]>([]);
+    const [optimisticComments, setOptimisticComments] = useOptimistic<string[], string>(
+        comments,
+        (state, newComment) => [...state, newComment],
     );
 
-    const comment = createMemo<Comment | undefined>(() => {
-        if (state.result) {
+    // How do I use setOptimisticComments in here...?
+    const [state, action, pending] = useActionState(withState(actions.comment), {
+        data: undefined,
+        error: undefined,
+    });
+
+    const [content, setContent] = useState("");
+
+    const haveNewError = !pending && state.error;
+    // Get previous content from the optimistic data, because content is empty
+    const displayedContent = haveNewError && input ? input : content;
+
+    // const [input, setInput] = useOptimistic(content, (state, optimistic) => optimistic ?? state);
+
+    const [commentId, setCommentId] = useState(crypto.randomUUID());
+
+    // const commentId = useDerived<string>(
+    //     // If we're not waiting on a response and we have a result, then reset our id
+    //     previous => (!pending && state.data ? crypto.randomUUID() : previous),
+    //     crypto.randomUUID(),
+    // );
+
+    const comment = (() => {
+        if (state.data) {
             return {
-                ...state.result.Comment,
-                user: state.result.User,
+                ...state.data.Comment,
+                user: state.data.User,
             };
-        } else if (state.input && !state.error) {
+        } else if (input !== "" && !state.error) {
             return {
-                id: commentId(),
-                content: state.input?.get("comment") as string,
+                id: commentId,
+                content: input,
                 createdOn: new Date(),
                 user: {
                     name: props.currentUser.name,
@@ -39,80 +61,64 @@ export function CommentForm(props: CommentFormProps) {
         }
 
         return undefined;
-    });
+    })();
 
-    const comments = createMemo<Comment[]>(previous => {
-        const haveNewError = !state.pending && state.error;
-        if (haveNewError) {
-            return previous.filter(comment => comment.id !== commentId());
-        }
+    // const comments = createMemo<Comment[]>(previous => {
+    //     const haveNewError = !pending && state.error;
+    //     if (haveNewError) {
+    //         return previous.filter(comment => comment.id !== commentId);
+    //     }
 
-        const optimisticComment = comment();
-        if (optimisticComment) {
-            return previous.some(comment => comment.id === optimisticComment.id)
-                ? previous.map(comment =>
-                      comment.id === optimisticComment.id ? optimisticComment : comment,
-                  )
-                : [...previous, optimisticComment];
-        }
+    //     if (comment) {
+    //         return previous.some(c => c.id === comment.id)
+    //             ? previous.map(c => (c.id === comment.id ? comment : c))
+    //             : [...previous, comment];
+    //     }
 
-        return previous;
-    }, []);
-
-    const [content, setContent] = createSignal("");
-    const displayedContent = createMemo(() => {
-        const haveNewError = !state.pending && state.error;
-
-        if (haveNewError && state.input) {
-            // Get previous content from the optimistic data
-            // Because content.value is empty
-            return state.input.get("comment") as string;
-        }
-
-        return content();
-    });
+    //     return previous;
+    // }, []);
 
     return (
         <>
-            <ul role="list" class="comments">
+            <ul role="list" className="comments">
                 {/* Server-rendered comments */}
                 {props.children}
                 {/* Client-rendered comments */}
-                <For each={comments()}>{comment => <CommentPreview comment={comment} />}</For>
+                {comments.map(comment => (
+                    <CommentPreview comment={comment} />
+                ))}
             </ul>
 
             {/* New comment form */}
-            <div class="comment-form-container">
+            <div className="comment-form-container">
                 <img src={props.currentUser.image} />
-                <Form onSubmit={() => setContent("")}>
+                <form action={action} onSubmit={() => setContent("")}>
                     <input type="hidden" id="postId" name="postId" value={props.postId} />
-                    <input type="hidden" id="commentId" name="commentId" value={commentId()} />
+                    <input type="hidden" id="commentId" name="commentId" value={commentId} />
 
-                    <div class="text-area-container">
-                        <label for="comment" class="sr-only">
+                    <div className="text-area-container">
+                        <label htmlFor="comment" className="sr-only">
                             Add your comment
                         </label>
                         <textarea
-                            rows="2"
+                            rows={2}
                             name="comment"
                             id="comment"
                             placeholder="Add your comment..."
-                            value={displayedContent()}
+                            value={displayedContent}
                             onInput={e => setContent(e.target.value)}
                         ></textarea>
                     </div>
 
-                    <div class="button-container">
-                        <button type="submit" disabled={state.pending}>
+                    <div className="button-container">
+                        <button type="submit" disabled={pending}>
                             Comment
                         </button>
                     </div>
-                </Form>
+                </form>
             </div>
 
-            <Show when={state.error}>
-                <Alert>{state.error!.message}</Alert>
-            </Show>
+            {state.error && <Alert>{state.error.message}</Alert>}
         </>
     );
 }

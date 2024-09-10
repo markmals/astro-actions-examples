@@ -1,5 +1,5 @@
 {
-    "name": "solid-astro-actions-example",
+    "name": "react-astro-actions-example",
     "type": "module",
     "private": true,
     "scripts": {
@@ -10,26 +10,30 @@
         "preview": "astro preview",
         "astro": "astro"
     },
+    "overrides": {
+        "@types/react": "npm:types-react@rc",
+        "@types/react-dom": "npm:types-react-dom@rc"
+    },
     "dependencies": {
         "@astrojs/check": "^0.9.3",
         "@astrojs/db": "^0.14.1",
-        "@astrojs/solid-js": "^4.4.1",
+        "@astrojs/react": "^3.6.2",
         "@astrojs/tailwind": "^5.1.0",
+        "@faker-js/faker": "^8.4.1",
         "@std/async": "npm:@jsr/std__async@^1.0.5",
         "@tailwindcss/forms": "^0.5.7",
+        "@types/react": "npm:types-react@rc",
+        "@types/react-dom": "npm:types-react-dom@rc",
         "astro": "^4.15.4",
         "cva": "^1.0.0-beta.1",
-        "solid-js": "^1.8.17",
+        "prettier": "^3.2.5",
+        "prettier-plugin-astro": "^0.13.0",
+        "prettier-plugin-tailwindcss": "^0.5.14",
+        "react": "19.0.0-rc-e210d081-20240909",
+        "react-dom": "19.0.0-rc-e210d081-20240909",
         "tailwindcss": "^3.4.3",
         "typescript": "^5.4.5",
         "unsplash-js": "^7.0.19"
-    },
-    "devDependencies": {
-        "@faker-js/faker": "^8.4.1",
-        "drizzle-orm": "^0.30.10",
-        "prettier": "^3.2.5",
-        "prettier-plugin-astro": "^0.13.0",
-        "prettier-plugin-tailwindcss": "^0.5.14"
     },
     "prettier": {
         "printWidth": 100,

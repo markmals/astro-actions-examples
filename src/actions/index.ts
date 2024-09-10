@@ -5,8 +5,8 @@ import { commentOnPost, commentSchema } from "./comment";
 export const server = {
     like: defineAction({
         input: likeSchema,
-        async handler(input) {
-            return await likePost(input);
+        async handler(input, ctx) {
+            return await likePost(input, ctx);
         },
     }),
     comment: defineAction({

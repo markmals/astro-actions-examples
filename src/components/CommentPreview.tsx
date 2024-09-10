@@ -10,25 +10,25 @@ export interface Comment {
     };
 }
 
-export function CommentPreview(props: { comment: Comment }) {
+export function CommentPreview({ comment }: { comment: Comment }) {
     return (
-        <li class="comment-container">
-            <div class="comment-line-container">
-                <div class="comment-line"></div>
+        <li className="comment-container">
+            <div className="comment-line-container">
+                <div className="comment-line"></div>
             </div>
 
-            <img src={props.comment.user.image} class="comment-user-image" />
+            <img src={comment.user.image} className="comment-user-image" />
 
-            <div class="comment-body">
+            <div className="comment-body">
                 <div>
-                    <div class="comment-user-name">
-                        <span>{props.comment.user.name}</span> commented
+                    <div className="comment-user-name">
+                        <span>{comment.user.name}</span> commented
                     </div>
-                    <time datetime={formatters.comment.formatAsISO(props.comment.createdOn)}>
-                        {formatters.comment.formatForDisplay(props.comment.createdOn)}
+                    <time dateTime={formatters.comment.formatAsISO(comment.createdOn)}>
+                        {formatters.comment.formatForDisplay(comment.createdOn)}
                     </time>
                 </div>
-                <p>{props.comment.content}</p>
+                <p>{comment.content}</p>
             </div>
         </li>
     );

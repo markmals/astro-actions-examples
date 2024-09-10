@@ -4,11 +4,10 @@ import type { HydratedPost } from "../lib/fetchAllPosts";
 import { formatters } from "../lib/formatters";
 import CommentFeed from "./CommentFeed.astro";
 import { LikeButton } from "./LikeButton";
-import { type InferSelectModel } from "drizzle-orm";
 
 export interface Props {
     post: HydratedPost;
-    currentUser: InferSelectModel<typeof User>;
+    currentUser: typeof User.$inferSelect;
     currentUserHasLikedPost: boolean;
 }
 

@@ -1,9 +1,9 @@
-import type { ParentProps } from "solid-js";
+import type { PropsWithChildren } from "react";
 
-export function Alert(props: ParentProps) {
+export function Alert({ children }: PropsWithChildren) {
     return (
-        <div class="alert">
-            <div class="icons">
+        <div className="alert">
+            <div className="icons">
                 <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path
                         fill-rule="evenodd"
@@ -12,7 +12,7 @@ export function Alert(props: ParentProps) {
                     ></path>
                 </svg>
             </div>
-            <h3>{props.children}</h3>
+            <h3>{children}</h3>
         </div>
     );
 }

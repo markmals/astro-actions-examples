@@ -1,6 +1,5 @@
 import { actions } from "astro:actions";
-import { useAction } from "../lib/solid-actions";
-import { Show, createMemo, createSignal } from "solid-js";
+import { useState, useOptimistic } from "react";
 
 export interface LikeButtonProps {
     postId: number;
@@ -9,39 +8,45 @@ export interface LikeButtonProps {
 }
 
 export function LikeButton(props: LikeButtonProps) {
-    const [likes, like] = useAction(actions.like);
-    const [isLiked, setIsLiked] = createSignal(props.isLiked);
+    const [pending, setPending] = useState(false);
 
-    const result = createMemo<number>(
-        previous => (likes.result ? likes.result : previous),
-        props.likeCount,
+    const [isLiked, setIsLiked] = useState(props.isLiked);
+    const [pendingIsLiked, setPendingIsLiked] = useOptimistic<boolean, boolean | undefined>(
+        isLiked,
+        (state, optimistic) => optimistic ?? state,
     );
 
-    // Optimistic UI
-    const likeCount = createMemo(() => {
-        if (likes.pending) {
-            // By this time we've set isLiked to its optimistic value
-            return isLiked() ? result() + 1 : result() - 1;
-        }
-        return result();
-    });
+    const [count, setCount] = useState(props.likeCount);
+    const [pendingCount, setPendingCount] = useOptimistic<number, number | undefined>(
+        count,
+        (state, optimistic) => optimistic ?? state,
+    );
 
     async function clickLikeButton() {
-        setIsLiked(isLiked => !isLiked);
-        await like({ postId: props.postId });
+        setPending(true);
+        setPendingIsLiked(!isLiked);
+        setPendingCount(isLiked ? count - 1 : count + 1);
 
-        if (likes.error) {
-            setIsLiked(isLiked => !isLiked);
+        const { data, error } = await actions.like({ postId: props.postId });
+
+        if (error) {
+            // Revert to original state
+            setIsLiked(isLiked);
+        } else {
+            // Set to the opposite of the original state
+            setIsLiked(!isLiked);
+            // Set to the count returned from the server
+            setCount(data);
         }
+
+        setPending(false);
     }
 
     return (
         <>
-            <span class="text-sm">{likeCount()}</span>
-            <button class="btn-heart" disabled={likes.pending} onClick={clickLikeButton}>
-                <Show when={isLiked()} fallback={"♡"}>
-                    ♥︎
-                </Show>
+            <span className="text-sm">{pendingCount}</span>
+            <button className="btn-heart" disabled={pending} onClick={clickLikeButton}>
+                {pendingIsLiked ? "♥︎" : "♡"}
             </button>
         </>
     );
