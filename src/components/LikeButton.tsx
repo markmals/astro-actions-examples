@@ -1,7 +1,6 @@
 import { actions } from "astro:actions";
 import { useAction } from "../lib/solid-actions";
 import { Show, createMemo, createSignal } from "solid-js";
-import type { z } from "astro:schema";
 
 export interface LikeButtonProps {
     postId: number;
