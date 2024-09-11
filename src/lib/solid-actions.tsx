@@ -1,9 +1,11 @@
 import { batch, children, createSignal, splitProps, untrack } from "solid-js";
 import type { ComponentProps, ParentComponent, ParentProps } from "solid-js";
-import { ActionError, getActionProps } from "astro:actions";
-import type { ErrorInferenceObject, SafeResult } from "astro:actions";
+import { ActionError } from "astro:actions";
+import type { ActionAccept, SafeResult } from "astro:actions";
 import { createStore } from "solid-js/store/types/server.js";
 import { reconcile } from "solid-js/store";
+import type { ErrorInferenceObject } from "astro/actions/runtime/utils.js";
+import type { z } from "astro:schema";
 
 export type FormMethod = "get" | "post" | "put" | "patch" | "delete";
 
@@ -41,66 +43,69 @@ export interface FormProps extends Omit<ComponentProps<"form">, "method" | "onSu
      */
     replace?: boolean;
 
-    onSubmit?: (event: SubmitEvent) => void;
+    onSubmit?: (event: SubmitEvent) => Promise<void> | void;
 }
 
-export type Input<A extends AstroAction> = A extends AstroAction<infer Input> ? Input : never;
-
-export type Output<A extends AstroAction> =
-    A extends AstroAction<infer _, infer Output> ? Output : never;
-
-export type Data<A extends AstroAction> =
-    A extends AstroAction<infer _, infer _, infer Data> ? Data : never;
-
-export type Submitter<Input> = ((input: Input) => Promise<void>) &
+export type ActionSubmitter<Input> = ((input: Input) => Promise<void>) &
     (Input extends FormData ? { Form: ParentComponent<FormProps> } : {});
 
-export interface ActionState<Input, Output, Data extends ErrorInferenceObject> {
+export interface ActionState<InputSchema extends z.ZodType, Input, Output> {
     pending: boolean;
     input?: Input;
     result?: Output;
-    error?: ActionError<Data>;
+    error?: ComplexActionError<InputSchema>;
     clear(): void;
     retry(): void;
 }
 
-export type Action<Input, Output, Data extends ErrorInferenceObject> = [
-    ActionState<Input, Output, Data>,
-    Submitter<Input>,
+export type Action<InputSchema extends z.ZodType, Input, Output> = [
+    ActionState<InputSchema, Input, Output>,
+    ActionSubmitter<Input>,
 ];
 
-export interface AstroAction<
-    Input = any,
-    Output = {} | undefined,
-    Data extends ErrorInferenceObject = ErrorInferenceObject,
-> {
-    safe: (input: Input) => Promise<SafeResult<Data, Output>>;
-}
+type ComplexActionError<TInputSchema extends z.ZodType> = ActionError<
+    z.input<TInputSchema> extends ErrorInferenceObject
+        ? z.input<TInputSchema>
+        : ErrorInferenceObject
+>;
 
-export function useAction<A extends AstroAction>(
-    astroAction: A,
-): Action<Input<A>, Output<A>, Data<A>> {
-    type Res = { data?: Output<A>; error?: ActionError<Data<A>> };
+type ActionClient<
+    Output,
+    InputSchema extends z.ZodType,
+    Input = z.input<InputSchema> | FormData,
+> = ((
+    input: Input,
+) => Promise<
+    SafeResult<
+        z.input<InputSchema> extends ErrorInferenceObject
+            ? z.input<InputSchema>
+            : ErrorInferenceObject,
+        Awaited<Output>
+    >
+>) & {
+    queryString: string;
+    orThrow: (input: Input) => Promise<Awaited<Output>>;
+};
 
-    const [input, setInput] = createSignal<Input<A>>();
+export function useAction<InputSchema extends z.ZodType, Input, Output>(
+    client: ActionClient<Output, InputSchema, Input>,
+): Action<InputSchema, Input, Output> {
+    type Res = {
+        data?: Output;
+        error?: ComplexActionError<InputSchema>;
+    };
+
+    const [input, setInput] = createSignal<Input>();
     const [response, setResponse] = createStore<Res | undefined>(undefined);
 
-    async function submit(input: Input<A>): Promise<void> {
+    async function submit(input: Input): Promise<void> {
         batch(() => {
             setResponse(undefined);
-            // TODO: Validate this on the client and return validated
-            // JSON if `input` is FormData
             setInput(() => input);
         });
 
-        const res = await astroAction.safe(input);
-
-        setResponse(
-            reconcile({
-                data: res.data as Output<A>,
-                error: res.error,
-            }),
-        );
+        const res = await client(input);
+        setResponse(reconcile(res));
     }
 
     submit.Form = (props: ParentProps & FormProps) => {
@@ -110,16 +115,14 @@ export function useAction<A extends AstroAction>(
         return (
             <form
                 {...formProps}
+                action={client.queryString}
                 method="post"
                 onSubmit={async event => {
                     event.preventDefault();
-                    // TODO: Throw fatal error if trying to submit FormData to a JSON handler?
-                    submit(new FormData(event.currentTarget) as Input<A>);
-                    // TODO: async onSubmit
-                    if (locals.onSubmit) locals.onSubmit(event);
+                    await submit(new FormData(event.currentTarget) as Input);
+                    if (locals.onSubmit) await locals.onSubmit(event);
                 }}
             >
-                <input {...getActionProps(astroAction as any)} />
                 {c()}
             </form>
         );
@@ -130,13 +133,13 @@ export function useAction<A extends AstroAction>(
             get pending(): boolean {
                 return !!input() && !response;
             },
-            get input(): Input<A> | undefined {
+            get input(): Input | undefined {
                 return input();
             },
-            get result(): Output<A> | undefined {
+            get result(): Output | undefined {
                 return response?.data;
             },
-            get error(): ActionError<Data<A>> | undefined {
+            get error(): ComplexActionError<InputSchema> | undefined {
                 return response?.error;
             },
             clear() {

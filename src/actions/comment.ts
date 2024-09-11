@@ -1,8 +1,8 @@
 import { db, Comment, eq, User } from "astro:db";
-import { ActionError, z } from "astro:actions";
+import { ActionError, type ActionAPIContext } from "astro:actions";
+import { z } from "astro:schema";
 import { fetchCurrentUser } from "../lib/fetchCurrentUser";
 import { delay } from "@std/async";
-import type { ActionAPIContext } from "astro/actions/runtime/store.js";
 
 export const commentSchema = z.object({
     postId: z.number(),

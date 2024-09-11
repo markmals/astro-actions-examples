@@ -29,7 +29,7 @@ export function CommentForm(props: CommentFormProps) {
         } else if (state.input && !state.error) {
             return {
                 id: commentId(),
-                content: state.input?.get("comment") as string,
+                content: state.input.get("comment") as string,
                 createdOn: new Date(),
                 user: {
                     name: props.currentUser.name,
@@ -84,7 +84,11 @@ export function CommentForm(props: CommentFormProps) {
             {/* New comment form */}
             <div class="comment-form-container">
                 <img src={props.currentUser.image} />
-                <Form onSubmit={() => setContent("")}>
+                <Form
+                    onSubmit={() => {
+                        setContent("");
+                    }}
+                >
                     <input type="hidden" id="postId" name="postId" value={props.postId} />
                     <input type="hidden" id="commentId" name="commentId" value={commentId()} />
 
