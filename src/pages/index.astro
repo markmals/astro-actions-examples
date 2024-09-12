@@ -5,9 +5,13 @@ import PostCard from "../components/PostCard.astro";
 import { fetchCurrentUser } from "../lib/fetchCurrentUser";
 
 import "../styles/styles.css";
+import { actions } from "astro:actions";
 
 const currentUser = await fetchCurrentUser(Astro);
 const { allPosts, likedPosts } = await fetchAllPosts();
+
+const commentResult = Astro.getActionResult(actions.comment);
+const erroredPost = commentResult?.error?.message.split(":")[0];
 ---
 
 <html lang="en">
@@ -34,6 +38,9 @@ const { allPosts, likedPosts } = await fetchAllPosts();
                 allPosts.map(post => (
                     <PostCard
                         post={post}
+                        error={
+                            erroredPost === post.id.toString() ? commentResult?.error : undefined
+                        }
                         currentUser={currentUser}
                         currentUserHasLikedPost={likedPosts.includes(post.id)}
                     />

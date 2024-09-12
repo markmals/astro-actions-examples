@@ -4,14 +4,16 @@ import type { HydratedPost } from "../lib/fetchAllPosts";
 import { formatters } from "../lib/formatters";
 import CommentFeed from "./CommentFeed.astro";
 import LikeButton from "./LikeButton.svelte";
+import type { ActionError } from "astro:actions";
 
 export interface Props {
     post: HydratedPost;
     currentUser: typeof User.$inferSelect;
     currentUserHasLikedPost: boolean;
+    error?: ActionError<any>;
 }
 
-const { post, currentUser, currentUserHasLikedPost } = Astro.props;
+const { post, currentUser, currentUserHasLikedPost, error } = Astro.props;
 ---
 
 <li>
@@ -27,7 +29,12 @@ const { post, currentUser, currentUserHasLikedPost } = Astro.props;
         <div class="post-container">
             <span class="post-description">{post.description}</span>
             <hr />
-            <CommentFeed comments={post.comments} currentUser={currentUser} postId={post.id} />
+            <CommentFeed
+                comments={post.comments}
+                currentUser={currentUser}
+                postId={post.id}
+                error={error}
+            />
         </div>
     </div>
     <div class="hstack footer">

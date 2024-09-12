@@ -24,7 +24,7 @@ export async function commentOnPost(
         );
         throw new ActionError({
             code: "FORBIDDEN",
-            message: `'${content}' contains an 'a'. Try typing a comment without the character 'a'.`,
+            message: `${postId}: '${content}' contains an 'a'. Try typing a comment without the character 'a'.`,
         });
     }
 

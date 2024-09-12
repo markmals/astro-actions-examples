@@ -6,11 +6,12 @@
         currentUser: HydratedPost["user"];
         postId: number;
         children: Snippet;
+        error?: ActionError<any>;
     }
 </script>
 
 <script lang="ts">
-    import { actions } from "astro:actions";
+    import { ActionError, actions } from "astro:actions";
     import { Action } from "../lib/actions.svelte";
     import CommentPreview from "./CommentPreview.svelte";
     import { type Comment } from "./CommentPreview.svelte";
@@ -18,7 +19,7 @@
     import { deriveFrom } from "../lib/derive-from.svelte";
     import Form from "../lib/Form.svelte";
 
-    const { currentUser, postId, children }: Props = $props();
+    const { currentUser, postId, children, error }: Props = $props();
 
     const action = new Action(actions.comment);
 
@@ -138,6 +139,6 @@
     </Form>
 </div>
 
-{#if action.error}
-    <Alert>{action.error.message}</Alert>
+{#if action.error || error}
+    <Alert>{(action.error?.message ?? error?.message)?.split(":")[1].trim()}</Alert>
 {/if}
