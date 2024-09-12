@@ -79,9 +79,7 @@
     });
 
     function handleKeydown(
-        event: KeyboardEvent & {
-            currentTarget: EventTarget & HTMLTextAreaElement;
-        },
+        event: KeyboardEvent & { currentTarget: EventTarget & HTMLTextAreaElement },
     ) {
         const isApple = /Mac|iPad|iPhone|iPod/.test(navigator.userAgent);
         const pressedModifier = isApple ? event.metaKey : event.ctrlKey;

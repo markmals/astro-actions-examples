@@ -19,10 +19,12 @@ export async function commentOnPost(
 
     // Simulate random faiulre
     if (content.includes("a")) {
-        console.error("[RANDOM COMMENT FAILURE]:", content, "includes the character 'a'");
+        console.error(
+            `[RANDOM COMMENT FAILURE]: '${content}' contains an 'a'. Try typing a comment without the character 'a'.`,
+        );
         throw new ActionError({
             code: "FORBIDDEN",
-            message: `${content} contains an 'a'. Try typing a comment without the character 'a'.`,
+            message: `'${content}' contains an 'a'. Try typing a comment without the character 'a'.`,
         });
     }
 
