@@ -1,9 +1,8 @@
 import { batch, children, createSignal, splitProps, untrack } from "solid-js";
 import type { ComponentProps, ParentComponent, ParentProps } from "solid-js";
 import { ActionError } from "astro:actions";
-import type { ActionAccept, SafeResult } from "astro:actions";
-import { createStore } from "solid-js/store/types/server.js";
-import { reconcile } from "solid-js/store";
+import type { SafeResult } from "astro:actions";
+import { createStore, reconcile } from "solid-js/store";
 import type { ErrorInferenceObject } from "astro/actions/runtime/utils.js";
 import type { z } from "astro:schema";
 
@@ -96,11 +95,11 @@ export function useAction<InputSchema extends z.ZodType, Input, Output>(
     };
 
     const [input, setInput] = createSignal<Input>();
-    const [response, setResponse] = createStore<Res | undefined>(undefined);
+    const [response, setResponse] = createStore<Res>({ data: undefined, error: undefined });
 
     async function submit(input: Input): Promise<void> {
         batch(() => {
-            setResponse(undefined);
+            setResponse({ data: undefined, error: undefined });
             setInput(() => input);
         });
 
@@ -131,7 +130,7 @@ export function useAction<InputSchema extends z.ZodType, Input, Output>(
     return [
         {
             get pending(): boolean {
-                return !!input() && !response;
+                return !!input() && !response?.data && !response.error;
             },
             get input(): Input | undefined {
                 return input();
@@ -145,7 +144,7 @@ export function useAction<InputSchema extends z.ZodType, Input, Output>(
             clear() {
                 batch(() => {
                     setInput(undefined);
-                    setResponse(undefined);
+                    setResponse({ data: undefined, error: undefined });
                 });
             },
             retry() {
