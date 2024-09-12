@@ -19,7 +19,7 @@
     import { deriveFrom } from "../lib/derive-from.svelte";
     import Form from "../lib/Form.svelte";
 
-    const { currentUser, postId, children, error }: Props = $props();
+    const { currentUser, postId, children, error: serverError }: Props = $props();
 
     const action = new Action(actions.comment);
 
@@ -96,6 +96,8 @@
             );
         }
     }
+
+    const error = $derived((action.error?.message ?? serverError?.message)?.split(":")[1].trim());
 </script>
 
 <ul role="list" class="comments">
@@ -139,6 +141,6 @@
     </Form>
 </div>
 
-{#if action.error || error}
-    <Alert>{(action.error?.message ?? error?.message)?.split(":")[1].trim()}</Alert>
+{#if error}
+    <Alert>{error}</Alert>
 {/if}
