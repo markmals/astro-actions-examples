@@ -11,7 +11,7 @@ const currentUser = await fetchCurrentUser(Astro);
 const { allPosts, likedPosts } = await fetchAllPosts();
 
 const commentResult = Astro.getActionResult(actions.comment);
-const erroredPost = commentResult?.error?.message.split(":");
+const erroredPost = commentResult?.error?.message.split(":")[0];
 ---
 
 <html lang="en">
