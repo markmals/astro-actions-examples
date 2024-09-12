@@ -10,7 +10,8 @@ import { actions } from "astro:actions";
 const currentUser = await fetchCurrentUser(Astro);
 const { allPosts, likedPosts } = await fetchAllPosts();
 
-const erroredPost = Astro.getActionResult(actions.comment)?.error?.message.split(":")[0];
+const commentResult = Astro.getActionResult(actions.comment);
+const erroredPost = commentResult?.error?.message.split(":");
 ---
 
 <html lang="en">
