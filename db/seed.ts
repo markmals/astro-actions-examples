@@ -31,7 +31,7 @@ export default async function seed() {
         [...Array(USER_COUNT).keys()].map(_ => ({
             name: faker.person.fullName(),
             handle: faker.internet.userName(),
-            image: faker.image.avatar(),
+            image: faker.image.avatarGitHub(),
         })),
     );
 
