@@ -1,5 +1,5 @@
 {
-    "name": "solid-astro-actions-example",
+    "name": "svelte-astro-actions-example",
     "type": "module",
     "private": true,
     "scripts": {
@@ -11,26 +11,28 @@
         "astro": "astro",
         "postinstall": "astro sync"
     },
+    "overrides": {
+        "@sveltejs/vite-plugin-svelte": "^4.0.0-next.6"
+    },
     "dependencies": {
         "@astrojs/check": "^0.9.3",
         "@astrojs/db": "^0.14.1",
-        "@astrojs/solid-js": "^4.4.1",
+        "@astrojs/svelte": "^5.7.0",
         "@astrojs/tailwind": "^5.1.0",
+        "@faker-js/faker": "^8.4.1",
         "@std/async": "npm:@jsr/std__async@^1.0.5",
+        "@sveltejs/vite-plugin-svelte": "^4.0.0-next.6",
         "@tailwindcss/forms": "^0.5.7",
         "astro": "^4.15.4",
         "cva": "^1.0.0-beta.1",
-        "solid-js": "^1.8.17",
-        "tailwindcss": "^3.4.3",
-        "typescript": "^5.4.5",
-        "unsplash-js": "^7.0.19"
-    },
-    "devDependencies": {
-        "@faker-js/faker": "^8.4.1",
-        "drizzle-orm": "^0.30.10",
-        "prettier": "^3.2.5",
+        "prettier": "^3.3.3",
         "prettier-plugin-astro": "^0.13.0",
-        "prettier-plugin-tailwindcss": "^0.5.14"
+        "prettier-plugin-svelte": "^3.2.6",
+        "prettier-plugin-tailwindcss": "^0.5.14",
+        "svelte": "^5.0.0-next.244",
+        "tailwindcss": "^3.4.3",
+        "typescript": "^5.6.2",
+        "unsplash-js": "^7.0.19"
     },
     "prettier": {
         "printWidth": 100,
@@ -38,6 +40,7 @@
         "arrowParens": "avoid",
         "plugins": [
             "prettier-plugin-astro",
+            "prettier-plugin-svelte",
             "prettier-plugin-tailwindcss"
         ]
     }
