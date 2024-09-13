@@ -1,5 +1,5 @@
 ---
-import { LikeButtonElement } from "../lib/client/elements/ui-like-button";
+import { LikeButtonElement } from "~/custom-elements/ui-like-button";
 
 export interface Props {
     postId: number;
@@ -7,7 +7,7 @@ export interface Props {
     isLiked: boolean;
 }
 
-const { postId, likeCount, isLiked } = Astro.props;
+let { postId, likeCount, isLiked } = Astro.props;
 ---
 
 <LikeButtonElement

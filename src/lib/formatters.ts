@@ -40,7 +40,7 @@ class CommentFormatter extends DateFormatter {
     }
 }
 
-export namespace Formatters {
-    export const frontPage = new FrontPageFormatter();
-    export const comment = new CommentFormatter();
-}
+export const formatters = {
+    frontPage: new FrontPageFormatter(),
+    comment: new CommentFormatter(),
+};

@@ -5,5 +5,4 @@ import lit from "@astrojs/lit";
 export default defineConfig({
     output: "server",
     integrations: [lit(), db()],
-    experimental: { actions: true },
 });

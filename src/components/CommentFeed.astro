@@ -1,122 +1,26 @@
 ---
-import type { HydratedPost } from "../lib/server/fetch-all-posts";
-import CommentPreview from "./CommentPreview.astro";
+import type { ActionError } from "astro:actions";
+import type { HydratedPost } from "~/lib/fetch-all-posts";
+import { CommentFormElement } from "~/custom-elements/ui-comment-form";
+import { CommentPreviewElement } from "~/custom-elements/ui-comment-preview";
 
 export interface Props {
     postId: number;
     currentUser: HydratedPost["user"];
     comments: HydratedPost["comments"];
+    error?: ActionError<any>;
 }
 
-const { postId, currentUser } = Astro.props;
-let { comments } = Astro.props;
+let { postId, currentUser, comments, error } = Astro.props;
 comments = comments.sort((lhs, rhs) => lhs.createdOn.getTime() - rhs.createdOn.getTime());
 ---
 
-<script>
-    import { CommentFeedModel } from "~/lib/client/models/comment-feed-model";
-    import { mapArray } from "~/lib/client/signals";
-    import { ReactiveElement } from "~/lib/client/elements/reactive-element";
-    import { CommentListItemCoordinator } from "~/lib/client/coordinators/comment-list-item";
-    import { ErrorAlertCoordinator } from "~/lib/client/coordinators/error-alert";
-
-    class CommentFeedElement extends ReactiveElement {
-        protected static override readonly tagName = "ui-comment-feed";
-
-        private readonly model = new CommentFeedModel(this.dataset, {
-            signal: this.disconnect.signal,
-        });
-
-        private readonly elements = {
-            form: this.$("form")!,
-            commentIdInput: this.$<HTMLInputElement>("input#commentId")!,
-            textArea: this.$("textarea")!,
-            button: this.$<HTMLButtonElement>(".button-container > button")!,
-            commentsList: this.$("ul")!,
-        };
-
-        private readonly commentListItemCoordinators = mapArray(
-            () => this.model.comments,
-            comment => new CommentListItemCoordinator(comment),
-        );
-
-        private hydrateRendering() {
-            // Update the general form elements when the model values change
-            this.renderEffect(() => {
-                this.elements.commentIdInput.value = this.model.tempCommentIdStore.id;
-                this.elements.textArea.value = this.model.content;
-                this.elements.button.disabled = this.model.comment.pending;
-                this.elements.textArea.disabled = this.model.comment.pending;
-            });
-
-            // Update the comments list when the comments update
-            this.renderEffect(() => {
-                const coordintors = this.commentListItemCoordinators.get();
-
-                if (coordintors.length) {
-                    // TODO: Diff the DOM less naïvely...
-                    const commentIds = Array.from(this.elements.commentsList.children).map(
-                        element => element.getAttribute("id")!,
-                    );
-
-                    this.elements.commentsList.append(
-                        ...coordintors
-                            .map(coordinator => coordinator.content)
-                            .filter(element => !commentIds.includes(element.getAttribute("id")!)),
-                    );
-                }
-            });
-
-            const errorAlert = new ErrorAlertCoordinator();
-            this.renderEffect(() => {
-                if (this.model.comment.error) {
-                    // Show error alert if there is an error
-                    errorAlert.message = this.model.comment.error.message;
-                    this.appendChild(errorAlert.content);
-                } else {
-                    // Hide error alert if error is cleared
-                    errorAlert.message = null;
-                    errorAlert.content.remove();
-                }
-            });
-        }
-
-        private hydrateListeners() {
-            this.hydrateListener(this.elements.form, "submit", this.model.handleFormSubmission);
-            this.hydrateListener(this.elements.textArea, "input", this.model.handleCommentInput);
-        }
-
-        public connectedCallback() {
-            this.hydrateRendering();
-            this.hydrateListeners();
-        }
-    }
-
-    CommentFeedElement.register();
-</script>
-
-<ui-comment-feed data-user-name={currentUser.name} data-user-image={currentUser.image}>
-    <ul role="list" class="comments">
-        {comments.map(comment => <CommentPreview comment={comment} />)}
-    </ul>
-
-    <!-- New comment form -->
-    <div class="comment-form-container">
-        <img src={currentUser.image} />
-        <!-- TODO: Add progressive enhancement for form action -->
-        <form>
-            <input type="hidden" id="postId" name="postId" value={postId} />
-            <input type="hidden" id="commentId" name="commentId" />
-
-            <div class="text-area-container">
-                <label for="comment" class="sr-only">Add your comment</label>
-                <textarea rows="2" name="comment" id="comment" placeholder="Add your comment..."
-                ></textarea>
-            </div>
-
-            <div class="button-container">
-                <button type="submit">Comment</button>
-            </div>
-        </form>
-    </div>
-</ui-comment-feed>
+<CommentFormElement
+    client:load
+    data-current-user={JSON.stringify(currentUser)}
+    data-error={JSON.stringify(error)}
+    data-post-id={postId}
+    data-comment-id={crypto.randomUUID()}
+>
+    {comments.map(comment => <CommentPreviewElement data-comment={JSON.stringify(comment)} />)}
+</CommentFormElement>

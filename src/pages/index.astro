@@ -1,11 +1,8 @@
 ---
 import { ViewTransitions } from "astro:transitions";
-import { fetchAllPosts } from "~/lib/server/fetch-all-posts";
+import { fetchAllPosts } from "~/lib/fetch-all-posts";
 import PostCard from "~/components/PostCard.astro";
-import { fetchCurrentUser } from "~/lib/server/fetch-current-user";
-
-import Alert from "~/components/Alert.astro";
-import CommentPreview from "~/components/CommentPreview.astro";
+import { fetchCurrentUser } from "~/lib/fetch-current-user";
 
 import "~/styles/styles.css";
 
@@ -40,13 +37,5 @@ const { allPosts, likedPosts } = await fetchAllPosts();
                 ))
             }
         </ul>
-
-        <template id="error-alert">
-            <Alert />
-        </template>
-
-        <template id="comment-preview">
-            <CommentPreview />
-        </template>
     </body>
 </html>

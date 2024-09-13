@@ -1,10 +1,9 @@
 import { db, Post, User, Like, Comment, eq, inArray } from "astro:db";
-import { type InferSelectModel } from "drizzle-orm";
 
-export type HydratedPost = InferSelectModel<typeof Post> & {
-    likes: { count: number; users: InferSelectModel<typeof User>[] };
-    user: InferSelectModel<typeof User>;
-    comments: (InferSelectModel<typeof Comment> & { user: InferSelectModel<typeof User> })[];
+export type HydratedPost = typeof Post.$inferSelect & {
+    likes: { count: number; users: (typeof User.$inferSelect)[] };
+    user: typeof User.$inferSelect;
+    comments: (typeof Comment.$inferSelect & { user: typeof User.$inferSelect })[];
 };
 
 export async function fetchAllPosts() {

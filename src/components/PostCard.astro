@@ -1,18 +1,17 @@
 ---
 import type { User } from "astro:db";
-import type { HydratedPost } from "~/lib/server/fetch-all-posts";
-import { Formatters } from "../lib/formatters";
+import type { HydratedPost } from "~/lib/fetch-all-posts";
+import { formatters } from "~/lib/formatters";
 import CommentFeed from "./CommentFeed.astro";
 import LikeButton from "./LikeButton.astro";
-import { type InferSelectModel } from "drizzle-orm";
 
 export interface Props {
     post: HydratedPost;
-    currentUser: InferSelectModel<typeof User>;
+    currentUser: typeof User.$inferSelect;
     currentUserHasLikedPost: boolean;
 }
 
-const { post, currentUser, currentUserHasLikedPost } = Astro.props;
+let { post, currentUser, currentUserHasLikedPost } = Astro.props;
 ---
 
 <li>
@@ -33,7 +32,7 @@ const { post, currentUser, currentUserHasLikedPost } = Astro.props;
     </div>
     <div class="hstack footer">
         <time datetime={post.createdOn.toISOString()} class="date-posted text-sm">
-            {Formatters.frontPage.format(post.createdOn)}
+            {formatters.frontPage.format(post.createdOn)}
         </time>
         <div class="spacer"></div>
         <LikeButton
@@ -52,7 +51,6 @@ const { post, currentUser, currentUserHasLikedPost } = Astro.props;
         border-color: var(--color-gray-300);
         background-color: var(--color-white);
         box-shadow: var(--shadow);
-        /* divide-y divide-gray-200 */
     }
 
     li > :not([hidden]) ~ :not([hidden]) {
