@@ -1,8 +1,8 @@
-import { db, Comment, eq, User } from "astro:db";
-import { ActionError, type ActionAPIContext } from "astro:actions";
-import { z } from "astro:schema";
-import { fetchCurrentUser } from "../lib/fetchCurrentUser";
-import { delay } from "@std/async";
+import { db, Comment, eq, User } from 'astro:db';
+import { ActionError, type ActionAPIContext } from 'astro:actions';
+import { z } from 'astro:schema';
+import { fetchCurrentUser } from '../lib/fetchCurrentUser';
+import { delay } from '@std/async';
 
 export const commentSchema = z.object({
     postId: z.number(),
@@ -18,12 +18,12 @@ export async function commentOnPost(
     await delay(1000);
 
     // Simulate random faiulre
-    if (content.includes("a")) {
+    if (content.includes('a')) {
         console.error(
             `[RANDOM COMMENT FAILURE]: '${content}' contains an 'a'. Try typing a comment without the character 'a'.`,
         );
         throw new ActionError({
-            code: "FORBIDDEN",
+            code: 'FORBIDDEN',
             message: `${postId}: '${content}' contains an 'a'. Try typing a comment without the character 'a'.`,
         });
     }

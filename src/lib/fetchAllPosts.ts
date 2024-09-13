@@ -1,4 +1,4 @@
-import { db, Post, User, Like, Comment, eq, inArray } from "astro:db";
+import { db, Post, User, Like, Comment, eq, inArray } from 'astro:db';
 
 type PostSelect = typeof Post.$inferSelect;
 export interface HydratedPost extends PostSelect {
@@ -52,7 +52,7 @@ export async function fetchAllPosts() {
 
     const likedPosts = allPosts
         .filter(({ likes }) => likes.users.map(({ id }) => id).includes(1))
-        .map(post => post.id);
+        .map((post) => post.id);
 
     return { allPosts, likedPosts };
 }

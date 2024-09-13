@@ -1,17 +1,17 @@
 ---
-import { ViewTransitions } from "astro:transitions";
-import { fetchAllPosts } from "../lib/fetchAllPosts";
-import PostCard from "../components/PostCard.astro";
-import { fetchCurrentUser } from "../lib/fetchCurrentUser";
+import { ViewTransitions } from 'astro:transitions';
+import { fetchAllPosts } from '../lib/fetchAllPosts';
+import PostCard from '../components/PostCard.astro';
+import { fetchCurrentUser } from '../lib/fetchCurrentUser';
 
-import "../styles/styles.css";
-import { actions } from "astro:actions";
+import '../styles/styles.css';
+import { actions } from 'astro:actions';
 
 const currentUser = await fetchCurrentUser(Astro);
 const { allPosts, likedPosts } = await fetchAllPosts();
 
 const commentResult = Astro.getActionResult(actions.comment);
-const erroredPost = commentResult?.error?.message.split(":")[0];
+const erroredPost = commentResult?.error?.message.split(':')[0];
 ---
 
 <html lang="en">
@@ -20,22 +20,22 @@ const erroredPost = commentResult?.error?.message.split(":")[0];
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <meta name="viewport" content="width=device-width" />
         <meta name="generator" content={Astro.generator} />
-        <title>Svelte Astro Actions</title>
+        <title>Vue Astro Actions</title>
         <ViewTransitions />
     </head>
     <body>
         <h1>
-            Svelte Astro Actions
+            Vue Astro Actions
             <img
                 class="logo"
-                src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Svelte_Logo.svg"
+                src="https://upload.wikimedia.org/wikipedia/commons/9/95/Vue.js_Logo_2.svg"
             />
             +
             <img class="logo" src="https://astro.build/assets/press/astro-icon-dark.svg" />
         </h1>
         <ul class="feed">
             {
-                allPosts.map(post => (
+                allPosts.map((post) => (
                     <PostCard
                         post={post}
                         error={

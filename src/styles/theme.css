@@ -379,11 +379,11 @@
     --width-7xl: 80rem;
     --width-prose: 65ch;
 
-    --font-family-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
-        "Segoe UI Symbol", "Noto Color Emoji";
-    --font-family-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-    --font-family-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-        "Courier New", monospace;
+    --font-family-sans: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-family-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+    --font-family-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+        'Courier New', monospace;
 
     --font-size-xs: 0.75rem;
     --font-size-xs--line-height: 1rem;

@@ -1,10 +1,10 @@
 /* @layer reset, defaults, patterns, components, utilities, overrides; */
 @layer theme, base, components, utilities;
 
-@import url("./theme.css") layer(theme);
-@import url("./base.css") layer(base);
-@import url("./components.css") layer(components);
-@import url("./utilities.css") layer(utilities);
+@import url('./theme.css') layer(theme);
+@import url('./base.css') layer(base);
+@import url('./components.css') layer(components);
+@import url('./utilities.css') layer(utilities);
 
 body {
     margin-left: auto;

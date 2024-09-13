@@ -1,10 +1,10 @@
 ---
-import type { User } from "astro:db";
-import type { HydratedPost } from "../lib/fetchAllPosts";
-import { formatters } from "../lib/formatters";
-import CommentFeed from "./CommentFeed.astro";
-import LikeButton from "./LikeButton.svelte";
-import type { ActionError } from "astro:actions";
+import type { User } from 'astro:db';
+import type { HydratedPost } from '../lib/fetchAllPosts';
+import { formatters } from '../lib/formatters';
+import CommentFeed from './CommentFeed.astro';
+import LikeButton from './LikeButton.vue';
+import type { ActionError } from 'astro:actions';
 
 export interface Props {
     post: HydratedPost;
@@ -54,6 +54,11 @@ const { post, currentUser, currentUserHasLikedPost, error } = Astro.props;
 </li>
 
 <style>
+    .text-sm {
+        font-size: var(--font-size-sm);
+        line-height: var(--font-size-sm--line-height);
+    }
+
     li {
         overflow: hidden;
         border-radius: var(--radius-lg);

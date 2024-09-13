@@ -1,6 +1,6 @@
-import { db, Post, User, Comment, Like, eq, and } from "astro:db";
-import { faker } from "@faker-js/faker";
-import { createApi as createUnsplashClient } from "unsplash-js";
+import { db, Post, User, Comment, Like, eq, and } from 'astro:db';
+import { faker } from '@faker-js/faker';
+import { createApi as createUnsplashClient } from 'unsplash-js';
 
 const USER_COUNT = 10;
 const POST_COUNT = 20;
@@ -11,7 +11,7 @@ const COMMENT_MAX = 52;
 // photos in your demo feed.
 const unsplash = createUnsplashClient({ accessKey: import.meta.env.ACCESS_KEY });
 
-async function getImageUrl(query: string = "food"): Promise<string> {
+async function getImageUrl(query: string = 'food'): Promise<string> {
     if (import.meta.env.ACCESS_KEY) {
         const search = await unsplash.search.getPhotos({
             query,
@@ -28,7 +28,7 @@ async function getImageUrl(query: string = "food"): Promise<string> {
 
 export default async function seed() {
     await db.insert(User).values(
-        [...Array(USER_COUNT).keys()].map(_ => ({
+        [...Array(USER_COUNT).keys()].map((_) => ({
             name: faker.person.fullName(),
             handle: faker.internet.userName(),
             image: faker.image.avatarGitHub(),
@@ -47,7 +47,7 @@ export default async function seed() {
     );
 
     await db.insert(Comment).values(
-        [...Array(faker.number.int({ max: COMMENT_MAX })).keys()].map(_ => ({
+        [...Array(faker.number.int({ max: COMMENT_MAX })).keys()].map((_) => ({
             id: crypto.randomUUID(),
             userId: faker.number.int({ max: USER_COUNT, min: 1 }),
             postId: faker.number.int({ max: POST_COUNT, min: 1 }),
@@ -58,7 +58,7 @@ export default async function seed() {
 
     await db.insert(Like).values(
         await Promise.all(
-            [...Array(faker.number.int({ max: LIKE_MAX })).keys()].map(async _ => {
+            [...Array(faker.number.int({ max: LIKE_MAX })).keys()].map(async (_) => {
                 let userId = faker.number.int({ max: USER_COUNT, min: 1 });
                 let postId = faker.number.int({ max: POST_COUNT, min: 1 });
 

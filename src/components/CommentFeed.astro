@@ -1,13 +1,13 @@
 ---
-import type { ActionError } from "astro:actions";
-import type { HydratedPost } from "../lib/fetchAllPosts";
-import CommentForm from "./CommentForm.svelte";
-import CommentPreview from "./CommentPreview.svelte";
+import type { ActionError } from 'astro:actions';
+import type { HydratedPost } from '../lib/fetchAllPosts';
+import CommentForm from './CommentForm.vue';
+import CommentPreview from './CommentPreview.vue';
 
 export interface Props {
     postId: number;
-    currentUser: HydratedPost["user"];
-    comments: HydratedPost["comments"];
+    currentUser: HydratedPost['user'];
+    comments: HydratedPost['comments'];
     error?: ActionError<any>;
 }
 
@@ -15,6 +15,14 @@ let { postId, currentUser, comments, error } = Astro.props;
 comments = comments.sort((lhs, rhs) => lhs.createdOn.getTime() - rhs.createdOn.getTime());
 ---
 
-<CommentForm client:load currentUser={currentUser} error={error} postId={postId}>
-    {comments.map(comment => <CommentPreview comment={comment} />)}
+<CommentForm
+    client:load
+    currentUser={currentUser}
+    error={error}
+    postId={postId}
+    commentId={crypto.randomUUID()}
+>
+    <ul role="list" class="comment-feed">
+        {comments.map((comment) => <CommentPreview comment={comment} />)}
+    </ul>
 </CommentForm>
