@@ -5,9 +5,4 @@ import db from '@astrojs/db';
 export default defineConfig({
     output: 'server',
     integrations: [vue(), db()],
-    vite: {
-        build: {
-            sourcemap: true,
-        },
-    },
 });
