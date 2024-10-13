@@ -1,8 +1,8 @@
 import { defineConfig } from 'astro/config';
-import vue from '@astrojs/vue';
+import react from '@astrojs/react';
 import db from '@astrojs/db';
 
 export default defineConfig({
     output: 'server',
-    integrations: [vue(), db()],
+    integrations: [react(), db()],
 });

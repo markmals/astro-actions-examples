@@ -1,5 +1,5 @@
 {
-    "name": "vue-astro-actions-example",
+    "name": "react-astro-actions-example",
     "type": "module",
     "private": true,
     "scripts": {
@@ -14,15 +14,18 @@
     "dependencies": {
         "@astrojs/check": "^0.9.3",
         "@astrojs/db": "^0.14.1",
-        "@astrojs/vue": "^4.5.0",
+        "@astrojs/react": "^3.6.2",
         "@faker-js/faker": "^8.4.1",
         "@std/async": "npm:@jsr/std__async@^1.0.5",
+        "@types/react": "^18.3.5",
+        "@types/react-dom": "^18.3.0",
         "astro": "^4.15.4",
         "prettier": "^3.3.3",
         "prettier-plugin-astro": "^0.13.0",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1",
         "typescript": "^5.6.2",
-        "unsplash-js": "^7.0.19",
-        "vue": "^3.5.4"
+        "unsplash-js": "^7.0.19"
     },
     "prettier": {
         "printWidth": 100,

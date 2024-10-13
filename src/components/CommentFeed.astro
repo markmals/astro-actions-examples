@@ -1,8 +1,8 @@
 ---
 import type { ActionError } from 'astro:actions';
 import type { HydratedPost } from '../lib/fetchAllPosts';
-import CommentForm from './CommentForm.vue';
-import CommentPreview from './CommentPreview.vue';
+import { CommentForm } from './CommentForm';
+import { CommentPreview } from './CommentPreview';
 
 export interface Props {
     postId: number;
